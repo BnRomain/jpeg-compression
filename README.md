@@ -12,8 +12,8 @@ L'objectif est de démontrer comment la mise à zéro de fréquences spécifique
 ## 🛠️ Fonctionnement Technique
 
 L'algorithme suit les étapes rigoureuses du traitement d'image :
-1. **Découpage en blocs** : L'image est traitée par blocs de 8 x 8 pixels sur les trois canaux **RGB**.
-2. **DCT-2** : Passage de l'espace spatial à l'espace fréquentiel via une matrice de passage P.
+1. **Découpage en blocs** : L'image est traitée par blocs de $8 \times 8$ pixels sur les trois canaux **RGB**.
+2. **DCT-2** : Passage de l'espace spatial à l'espace fréquentiel via une matrice de passage $P$.
 3. **Quantification & Seuillage** : 
    - Division par une matrice de quantification standard $Q$.
    - Application d'un seuil réglable : les coefficients inférieurs au seuil sont mis à zéro.
@@ -32,4 +32,4 @@ L'application affiche en temps réel des métriques pour comparer l'efficacité 
 > **💡 Note technique :** La différence entre le fichier original (ex: PNG de 200 Ko) et la "Taille RAM" (ex: 50 Mo) est normale. L'original est déjà compressé par des codecs systèmes. Mon algorithme travaille sur les données brutes pour démontrer le gain mathématique du format CSR.
 
 ## 🔗 Démo en ligne
-👉 [Démo en ligne](https://jpeg-csr-compression.streamlit.app/)
+👉 [Compresser une image](https://jpeg-csr-compression.streamlit.app/)
