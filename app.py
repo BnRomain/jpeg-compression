@@ -1,109 +1,100 @@
 import streamlit as st
 import numpy as np
 import cv2
+import io
 from scipy.sparse import csr_matrix
 from compression import compression, decompression
 
 st.set_page_config(page_title="JPEG + CSR Compression", layout="centered")
 
-st.title("📷 Analyse de Compression DCT & CSR")
-st.write("Visualisation de la compression par blocs 8x8 sur les canaux RGB.")
+# === TITRE ET SIGNATURE ===
+st.title("📷 Compression DCT & Matrices CSR")
+st.sidebar.title("Réglages")
+seuil = st.sidebar.slider("Seuil de quantification", 0, 10, 2)
+st.sidebar.divider()
+st.sidebar.markdown("### 👨‍💻 Crédits")
+st.sidebar.caption("Made by Romain Ben")
 
-# 1. Barre latérale pour les réglages
-with st.sidebar:
-    st.header("Réglages")
-    seuil = st.slider("Seuil de quantification", 0, 10, 2)
-    st.info("Un seuil plus haut augmente la sparsité et réduit la taille du fichier.")
-    st.divider()
-    st.caption("👨‍💻 **Made by Romain Ben**")
-    st.caption("Projet : Compression JPEG custom")
-
-# 2. Upload de l'image
-uploaded_file = st.file_uploader("Importer une image (PNG, JPG)", type=["png", "jpg", "jpeg"])
+# === UPLOAD ===
+uploaded_file = st.file_uploader("Importer une image", type=["png", "jpg", "jpeg"])
 
 if uploaded_file is not None:
-    # Lecture et conversion
+    # Lecture image
     file_bytes = np.asarray(bytearray(uploaded_file.read()), dtype=np.uint8)
     img = cv2.imdecode(file_bytes, 1)
     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB) / 255.0
 
-    # Affichage Image Originale
     st.subheader("🖼️ Image Originale")
     st.image(img, use_container_width=True)
 
+    # === BOUTON DE LANCEMENT ===
     if st.button("🚀 Lancer la compression", use_container_width=True):
-        with st.spinner("Calcul des matrices DCT..."):
-            # === COMPRESSION ===
+        with st.spinner("Compression en cours..."):
+            # 1. Compression dense (ton code)
             img_comp_dense = compression(img, seuil)
             
-            # === CALCUL TAILLE CSR ===
-            taille_csr_totale = 0
+            # 2. Transformation CSR et stockage dans la "Session State"
+            st.session_state['matrices_csr'] = []
             nnz_total = 0
-            pixels_total = img_comp_dense.shape[0] * img_comp_dense.shape[1] * 3
+            taille_csr_totale = 0
             
             for c in range(3):
                 canal_int16 = img_comp_dense[:, :, c].astype(np.int16)
                 m_sparse = csr_matrix(canal_int16)
-                # Taille : data (valeurs) + indices (colonnes) + indptr (lignes)
-                taille_csr_totale += (m_sparse.data.nbytes + m_sparse.indices.nbytes + m_sparse.indptr.nbytes)
+                st.session_state['matrices_csr'].append(m_sparse)
+                
                 nnz_total += m_sparse.nnz
+                taille_csr_totale += (m_sparse.data.nbytes + m_sparse.indices.nbytes + m_sparse.indptr.nbytes)
 
-            # === DECOMPRESSION ===
-            img_final = decompression(img_comp_dense)
+            # 3. Décompression pour affichage
+            st.session_state['img_final'] = decompression(img_comp_dense)
+            
+            # 4. Sauvegarde des stats
+            st.session_state['taille_brute'] = img.nbytes
+            st.session_state['taille_csr'] = taille_csr_totale
+            st.session_state['nnz'] = nnz_total
 
-        # Affichage Image Compressée
-        st.subheader("📉 Image après Compression/Décompression")
-        st.image(img_final, use_container_width=True)
+    # === AFFICHAGE DES RÉSULTATS (si la compression a déjà été faite) ===
+    if 'img_final' in st.session_state:
+        st.subheader("📉 Image Reconstruite")
+        st.image(st.session_state['img_final'], use_container_width=True)
 
-        # === STATISTIQUES ===
+        # Statistiques
         st.divider()
-        st.subheader("📊 Résultats de l'algorithme")
-        
-        taille_brute = img.nbytes
-        ratio = taille_brute / taille_csr_totale
-        sparsite = (1 - (nnz_total / pixels_total)) * 100
-
         col1, col2, col3 = st.columns(3)
-        col1.metric("Taille Initiale", f"{taille_brute / 1024:.1f} Ko")
-        col2.metric("Taille CSR", f"{taille_csr_totale / 1024:.1f} Ko")
+        ratio = st.session_state['taille_brute'] / st.session_state['taille_csr']
+        
+        col1.metric("Données RAM", f"{st.session_state['taille_brute'] / 1024:.1f} Ko")
+        col2.metric("Taille CSR", f"{st.session_state['taille_csr'] / 1024:.1f} Ko")
         col3.metric("Ratio de Gain", f"{ratio:.2f}x")
 
-        st.write(f"**Sparsité globale :** `{sparsite:.2f} %` de zéros dans les matrices DCT.")
-        
-        if seuil > 4:
-            st.warning("⚠️ Un seuil élevé provoque un effet de pixelisation (blocs 8x8 visibles).")
-
-        st.divider()
+        # === TÉLÉCHARGEMENTS ===
         st.subheader("📥 Téléchargements")
-        
-        col_dl1, col_dl2 = st.columns(2)
+        c_dl1, c_dl2 = st.columns(2)
 
-        # --- BOUTON 1 : LE RENDU VISUEL (PNG) ---
-        img_out = (img_final * 255).astype(np.uint8)
+        # Download PNG
+        img_out = (st.session_state['img_final'] * 255).astype(np.uint8)
         _, buffer_img = cv2.imencode('.png', cv2.cvtColor(img_out, cv2.COLOR_RGB2BGR))
-        
-        col_dl1.download_button(
-            label="🖼️ Télécharger le rendu (PNG)",
+        c_dl1.download_button(
+            label="🖼️ Rendu visuel (PNG)",
             data=buffer_img.tobytes(),
-            file_name="rendu_compression.png",
+            file_name="rendu_romain.png",
             mime="image/png",
             use_container_width=True
         )
 
-        # --- BOUTON 2 : LES DONNÉES COMPRESSÉES (NPZ) ---
-        import io
+        # Download NPZ
         buf_npz = io.BytesIO()
         dict_csr = {
-            'canal_R': matrices_csr[0],
-            'canal_G': matrices_csr[1],
-            'canal_B': matrices_csr[2]
+            'canal_R': st.session_state['matrices_csr'][0],
+            'canal_G': st.session_state['matrices_csr'][1],
+            'canal_B': st.session_state['matrices_csr'][2]
         }
         np.savez_compressed(buf_npz, **dict_csr)
-        
-        col_dl2.download_button(
-            label="💾 Télécharger les matrices (NPZ)",
+        c_dl2.download_button(
+            label="💾 Matrices Sparse (NPZ)",
             data=buf_npz.getvalue(),
-            file_name="donnees_compressées.npz",
+            file_name="donnees_romain.npz",
             mime="application/octet-stream",
             use_container_width=True
         )
