@@ -1,76 +1,76 @@
 import streamlit as st
 import numpy as np
-from PIL import Image
+import matplotlib.pyplot as plt
+from scipy.sparse import csr_matrix
 import io
+import os
 
-from compression import compression, decompression
+# Import de tes fonctions depuis ton fichier de calcul
+from compression import compression, decompression, init
 
-st.set_page_config(
-    page_title="JPEG + CSR Compression",
-    layout="centered"
-)
+st.set_page_config(page_title="Compresseur DCT/CSR", layout="centered")
 
-st.title("📷 Compression JPEG avec DCT et matrices CSR")
-st.write(
-    "Démo interactive : compression avec perte basée sur la DCT, "
-    "quantification JPEG et stockage sparse (CSR) sur la luminance."
-)
+st.title("📷 Compression RGB via DCT et Matrices CSR")
+st.write("Cette application utilise votre algorithme personnalisé de compression par blocs 8x8.")
 
-# Upload image
-uploaded_file = st.file_uploader(
-    "Importer une image",
-    type=["png", "jpg", "jpeg"]
-)
+# 1. Upload
+uploaded_file = st.file_uploader("Choisir une image", type=["png", "jpg", "jpeg"])
 
-# Paramètre de compression
-seuil = st.slider(
-    "Seuil de quantification (coefficients DCT négligeables)",
-    min_value=0,
-    max_value=6,
-    value=1
-)
+# 2. Paramètres
+seuil = st.slider("Seuil de suppression des coefficients", 0, 10, 2)
 
 if uploaded_file is not None:
-    # Chargement image
-    img_pil = Image.open(uploaded_file).convert("RGB")
-    img_np = np.array(img_pil, dtype=np.float32)
-
-    st.subheader("Image originale")
-    st.image(img_pil, use_container_width=True)
+    # Lecture de l'image
+    file_bytes = np.asarray(bytearray(uploaded_file.read()), dtype=np.uint8)
+    import cv2
+    img = cv2.imdecode(file_bytes, 1)
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB) / 255.0 # Normalisation comme plt.imread
+    
+    col_orig, col_comp = st.columns(2)
+    
+    with col_orig:
+        st.subheader("Originale")
+        st.image(img, use_container_width=True)
 
     if st.button("Lancer la compression"):
-        with st.spinner("Compression en cours..."):
-            # === COMPRESSION ===
-            Y_csr, Cb, Cr = compression(img_np, seuil)
+        # === ÉTAPE 1 : COMPRESSION (ton code) ===
+        # On récupère l'image quantifiée (dense)
+        img_comp_dense = compression(img, seuil)
+        
+        # === ÉTAPE 2 : TRANSFORMATION CSR ET CALCUL TAILLE ===
+        taille_csr_totale = 0
+        matrices_csr = []
+        
+        for c in range(3):
+            canal_int16 = img_comp_dense[:, :, c].astype(np.int16)
+            m_sparse = csr_matrix(canal_int16)
+            matrices_csr.append(m_sparse)
+            
+            # Calcul de la taille réelle en mémoire du format CSR
+            # (data + indices + indptr)
+            taille_csr_totale += (m_sparse.data.nbytes + 
+                                 m_sparse.indices.nbytes + 
+                                 m_sparse.indptr.nbytes)
 
-            # === DECOMPRESSION ===
-            img_decomp = decompression(Y_csr, Cb, Cr)
+        # === ÉTAPE 3 : DÉCOMPRESSION POUR AFFICHAGE ===
+        img_final = decompression(img_comp_dense)
+        
+        with col_comp:
+            st.subheader("Décompressée")
+            st.image(img_final, use_container_width=True)
 
-        st.subheader("Image après compression + décompression")
-        st.image(img_decomp, use_container_width=True)
+        # === ÉTAPE 4 : COMPARAISON DES TAILLES ===
+        st.divider()
+        st.subheader("📊 Comparaison des tailles")
+        
+        # Taille originale (données brutes non compressées)
+        taille_brute = img.nbytes 
+        
+        c1, c2, c3 = st.columns(3)
+        c1.metric("Format Brut (RGB)", f"{taille_brute / 1024:.1f} Ko")
+        c2.metric("Format CSR", f"{taille_csr_totale / 1024:.1f} Ko")
+        
+        ratio = taille_brute / taille_csr_totale
+        c3.metric("Ratio de Gain", f"{ratio:.2f}x")
 
-        # Infos compression
-        nnz = Y_csr.nnz
-        total = Y_csr.shape[0] * Y_csr.shape[1]
-        sparsity = 100 * (1 - nnz / total)
-
-        st.markdown(
-            f"""
-            **Informations sur la compression :**
-            - Taille image : `{Y_csr.shape[0]} × {Y_csr.shape[1]}`
-            - Coefficients non nuls (Y) : `{nnz}`
-            - Sparsité de la luminance : `{sparsity:.2f} %`
-            """
-        )
-
-        # Téléchargement
-        img_out = Image.fromarray((img_decomp * 255).astype(np.uint8))
-        buf = io.BytesIO()
-        img_out.save(buf, format="PNG")
-
-        st.download_button(
-            label="📥 Télécharger l'image reconstruite",
-            data=buf.getvalue(),
-            file_name="image_compressee.png",
-            mime="image/png"
-        )
+        st.info(f"Le format CSR est ici **{ratio:.1f} fois plus léger** que l'image brute en mémoire grâce au seuillage (Seuil = {seuil}).")
