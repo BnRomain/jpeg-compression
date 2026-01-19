@@ -63,34 +63,6 @@ if uploaded_file is not None:
             """
         )
 
-        st.markdown(
-            f"""
-            # === STATISTIQUES DE COMPRESSION ===
-            st.subheader("📊 Analyse de la compression")
-            
-            # 1. Taille originale (en octets) : 3 canaux (RGB), 8 bits par canal
-            taille_origine = img_np.shape[0] * img_np.shape[1] * 3
-            
-            # 2. Taille compressée (estimation des données stockées)
-            # On compte les coefficients Y (CSR), et les canaux Cb, Cr complets
-            taille_y_csr = Y_csr.data.nbytes + Y_csr.indices.nbytes + Y_csr.indptr.nbytes
-            taille_cb_cr = Cb.nbytes + Cr.nbytes
-            taille_totale_comp = taille_y_csr + taille_cb_cr
-            
-            # Calcul du ratio et gain
-            ratio = taille_origine / taille_totale_comp
-            gain = (1 - (taille_totale_comp / taille_origine)) * 100
-    
-            # Affichage des métriques
-            col1, col2, col3 = st.columns(3)
-            col1.metric("Taille Originale", f"{taille_origine / 1024:.1f} KB")
-            col2.metric("Taille Estimée", f"{taille_totale_comp / 1024:.1f} KB", f"-{gain:.1f}%", delta_color="normal")
-            col3.metric("Ratio", f"{ratio:.2f}:1")
-    
-            st.info(f"💡 Grâce au format **CSR**, nous ne stockons que `{nnz}` coefficients non nuls sur `{total}` pour la luminance.")
-            """
-        )
-
         # Téléchargement
         img_out = Image.fromarray((img_decomp * 255).astype(np.uint8))
         buf = io.BytesIO()
