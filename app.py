@@ -72,3 +72,38 @@ if uploaded_file is not None:
         
         if seuil > 4:
             st.warning("⚠️ Un seuil élevé provoque un effet de pixelisation (blocs 8x8 visibles).")
+
+        st.divider()
+        st.subheader("📥 Téléchargements")
+        
+        col_dl1, col_dl2 = st.columns(2)
+
+        # --- BOUTON 1 : LE RENDU VISUEL (PNG) ---
+        img_out = (img_final * 255).astype(np.uint8)
+        _, buffer_img = cv2.imencode('.png', cv2.cvtColor(img_out, cv2.COLOR_RGB2BGR))
+        
+        col_dl1.download_button(
+            label="🖼️ Télécharger le rendu (PNG)",
+            data=buffer_img.tobytes(),
+            file_name="rendu_compression.png",
+            mime="image/png",
+            use_container_width=True
+        )
+
+        # --- BOUTON 2 : LES DONNÉES COMPRESSÉES (NPZ) ---
+        import io
+        buf_npz = io.BytesIO()
+        dict_csr = {
+            'canal_R': matrices_csr[0],
+            'canal_G': matrices_csr[1],
+            'canal_B': matrices_csr[2]
+        }
+        np.savez_compressed(buf_npz, **dict_csr)
+        
+        col_dl2.download_button(
+            label="💾 Télécharger les matrices (NPZ)",
+            data=buf_npz.getvalue(),
+            file_name="donnees_compressées.npz",
+            mime="application/octet-stream",
+            use_container_width=True
+        )
