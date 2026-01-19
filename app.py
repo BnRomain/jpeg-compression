@@ -6,7 +6,7 @@ import io
 import os
 
 # Import de tes fonctions depuis ton fichier de calcul
-from compression.py import compression, decompression, init
+from compression import compression, decompression, init
 
 st.set_page_config(page_title="Compresseur DCT/CSR", layout="centered")
 
