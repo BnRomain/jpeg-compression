@@ -1,7 +1,7 @@
 import numpy as np
 from scipy.sparse import csr_matrix
-from PIL import Image
 
+# Matrice de quantification JPEG standard (luminance)
 Q = np.array([
     [16, 11, 10, 16, 24, 40, 51, 61],
     [12, 12, 13, 19, 26, 58, 60, 55],
@@ -14,15 +14,30 @@ Q = np.array([
 ])
 
 
-def init(img):
-    img = np.array(img)
-    x, y, _ = img.shape
-    x -= x % 8
-    y -= y % 8
-    img = img[:x, :y, :3]
-    img = img * 255 - 128
-    return img, x, y
+# =========================
+# ESPACES COULEUR
+# =========================
 
+def rgb_to_ycbcr(img):
+    img = img.astype(np.float32)
+    R, G, B = img[:,:,0], img[:,:,1], img[:,:,2]
+    Y  = 0.299*R + 0.587*G + 0.114*B
+    Cb = -0.1687*R - 0.3313*G + 0.5*B + 128
+    Cr = 0.5*R - 0.4187*G - 0.0813*B + 128
+    return Y, Cb, Cr
+
+
+def ycbcr_to_rgb(Y, Cb, Cr):
+    R = Y + 1.402*(Cr - 128)
+    G = Y - 0.34414*(Cb - 128) - 0.71414*(Cr - 128)
+    B = Y + 1.772*(Cb - 128)
+    img = np.stack([R, G, B], axis=2)
+    return np.clip(img, 0, 255)
+
+
+# =========================
+# DCT
+# =========================
 
 def DCT2_P():
     P = np.zeros((8, 8))
@@ -33,47 +48,59 @@ def DCT2_P():
     return P
 
 
-def D_matrix(img_8):
-    P = DCT2_P()
-    return P @ img_8 @ P.T
+P = DCT2_P()
 
 
-def compression(img, seuil=2):
-    img, x, y = init(img)
-    img_compressed = np.zeros((x, y, 3))
+# =========================
+# COMPRESSION
+# =========================
 
-    for c in range(3):
-        for i in range(x // 8):
-            for j in range(y // 8):
-                bloc = img[i*8:(i+1)*8, j*8:(j+1)*8, c]
-                D = D_matrix(bloc)
-                D = np.fix(D / Q)
-                D[np.abs(D) < seuil] = 0
-                D[3:, :] = 0
-                D[:, 3:] = 0
-                img_compressed[i*8:(i+1)*8, j*8:(j+1)*8, c] = D
+def compression(img_rgb, seuil=1):
+    img = img_rgb.astype(np.float32)
+    x, y, _ = img.shape
+    x -= x % 8
+    y -= y % 8
+    img = img[:x, :y]
 
-    return img_compressed
+    Y, Cb, Cr = rgb_to_ycbcr(img)
+    Y = Y - 128
+
+    Y_comp = np.zeros_like(Y)
+
+    for i in range(x // 8):
+        for j in range(y // 8):
+            bloc = Y[i*8:(i+1)*8, j*8:(j+1)*8]
+            D = P @ bloc @ P.T
+            D = np.round(D / Q)
+
+            # Seuillage + limitation fréquentielle
+            D[np.abs(D) < seuil] = 0
+            D[5:, :] = 0
+            D[:, 5:] = 0
+
+            Y_comp[i*8:(i+1)*8, j*8:(j+1)*8] = D
+
+    # CSR uniquement sur Y (luminance)
+    Y_csr = csr_matrix(Y_comp.astype(np.int16))
+
+    return Y_csr, Cb, Cr
 
 
-def to_csr(img_comp):
-    csr_channels = []
-    for c in range(3):
-        csr_channels.append(csr_matrix(img_comp[:, :, c].astype(np.int16)))
-    return csr_channels
+# =========================
+# DECOMPRESSION
+# =========================
 
+def decompression(Y_csr, Cb, Cr):
+    Y_q = Y_csr.toarray().astype(np.float32)
+    x, y = Y_q.shape
 
-def decompression(csr_channels):
-    P = DCT2_P()
-    x, y = csr_channels[0].shape
-    img = np.zeros((x, y, 3))
+    Y = np.zeros((x, y))
 
-    for c in range(3):
-        dense = csr_channels[c].toarray()
-        for i in range(x // 8):
-            for j in range(y // 8):
-                bloc = dense[i*8:(i+1)*8, j*8:(j+1)*8] * Q
-                img[i*8:(i+1)*8, j*8:(j+1)*8, c] = P.T @ bloc @ P
+    for i in range(x // 8):
+        for j in range(y // 8):
+            bloc = Y_q[i*8:(i+1)*8, j*8:(j+1)*8] * Q
+            Y[i*8:(i+1)*8, j*8:(j+1)*8] = P.T @ bloc @ P
 
-    img = (img + 128) / 255
-    return np.clip(img, 0, 1)
+    Y = Y + 128
+    img_rgb = ycbcr_to_rgb(Y, Cb, Cr)
+    return img_rgb / 255
