@@ -89,6 +89,7 @@ if uploaded_file is not None:
     
             st.info(f"💡 Grâce au format **CSR**, nous ne stockons que `{nnz}` coefficients non nuls sur `{total}` pour la luminance.")
             """
+        )
 
         # Téléchargement
         img_out = Image.fromarray((img_decomp * 255).astype(np.uint8))
