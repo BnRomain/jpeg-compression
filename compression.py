@@ -1,7 +1,8 @@
-import numpy as np
-from scipy.sparse import csr_matrix
+import numpy as np 
+from scipy.sparse import csr_matrix, load_npz
+import os
 
-# Matrice de quantification JPEG standard (luminance)
+# Matrice de quantification JPEG standard
 Q = np.array([
     [16, 11, 10, 16, 24, 40, 51, 61],
     [12, 12, 13, 19, 26, 58, 60, 55],
@@ -13,94 +14,65 @@ Q = np.array([
     [72, 92, 95, 98, 112, 100, 103, 99]
 ])
 
+def init(img):
+    # img est déjà en RGB (0-1) via l'appli
+    img_2D = img[:, :, 0]
+    x, y = img_2D.shape
+    x_new = x - x % 8
+    y_new = y - y % 8
 
-# =========================
-# ESPACES COULEUR
-# =========================
-
-def rgb_to_ycbcr(img):
-    img = img.astype(np.float32)
-    R, G, B = img[:,:,0], img[:,:,1], img[:,:,2]
-    Y  = 0.299*R + 0.587*G + 0.114*B
-    Cb = -0.1687*R - 0.3313*G + 0.5*B + 128
-    Cr = 0.5*R - 0.4187*G - 0.0813*B + 128
-    return Y, Cb, Cr
-
-
-def ycbcr_to_rgb(Y, Cb, Cr):
-    R = Y + 1.402*(Cr - 128)
-    G = Y - 0.34414*(Cb - 128) - 0.71414*(Cr - 128)
-    B = Y + 1.772*(Cb - 128)
-    img = np.stack([R, G, B], axis=2)
-    return np.clip(img, 0, 255)
-
-
-# =========================
-# DCT
-# =========================
+    img_new = img[:x_new, :y_new, :3]
+    # On passe en 0-255 puis on centre sur 128 (ton process)
+    img_new = (img_new * 255) - 128
+    return img_new, x_new, y_new
 
 def DCT2_P():
     P = np.zeros((8, 8))
     for i in range(8):
         C = 1 / np.sqrt(2) if i == 0 else 1
         for j in range(8):
-            P[i, j] = 0.5 * C * np.cos(((2*j + 1) * i * np.pi) / 16)
+            P[i, j] = (1/2) * C * np.cos(((2*j + 1) * i * np.pi) / 16)
     return P
 
+def D_matrix(img_8, P):
+    # On passe P en argument pour ne pas le recalculer 1000 fois
+    D = P @ img_8 @ np.transpose(P)
+    return D 
 
-P = DCT2_P()
+def compression(img_input, seuil=2):
+    img, x, y = init(img_input)
+    img_compressed = np.zeros((x, y, 3))
+    P = DCT2_P()
+    
+    for bloc in range(3):
+        for i in range(x // 8):
+            for j in range(y // 8):
+                img_8 = img[i*8:(i+1)*8, j*8:(j+1)*8, bloc]
+                D = D_matrix(img_8, P)
+                D = np.fix( D / Q ) 
+                
+                # Ta logique de suppression de fréquences
+                D[np.abs(D) < seuil] = 0
+                D[3:, :] = 0
+                D[:, 3:] = 0 
+                
+                img_compressed[i*8:(i+1)*8, j*8:(j+1)*8, bloc] = D 
+    return img_compressed
 
-
-# =========================
-# COMPRESSION
-# =========================
-
-def compression(img_rgb, seuil=1):
-    img = img_rgb.astype(np.float32)
-    x, y, _ = img.shape
-    x -= x % 8
-    y -= y % 8
-    img = img[:x, :y]
-
-    Y, Cb, Cr = rgb_to_ycbcr(img)
-    Y = Y - 128
-
-    Y_comp = np.zeros_like(Y)
-
-    for i in range(x // 8):
-        for j in range(y // 8):
-            bloc = Y[i*8:(i+1)*8, j*8:(j+1)*8]
-            D = P @ bloc @ P.T
-            D = np.round(D / Q)
-
-            # Seuillage + limitation fréquentielle
-            D[np.abs(D) < seuil] = 0
-            D[5:, :] = 0
-            D[:, 5:] = 0
-
-            Y_comp[i*8:(i+1)*8, j*8:(j+1)*8] = D
-
-    # CSR uniquement sur Y (luminance)
-    Y_csr = csr_matrix(Y_comp.astype(np.int16))
-
-    return Y_csr, Cb, Cr
-
-
-# =========================
-# DECOMPRESSION
-# =========================
-
-def decompression(Y_csr, Cb, Cr):
-    Y_q = Y_csr.toarray().astype(np.float32)
-    x, y = Y_q.shape
-
-    Y = np.zeros((x, y))
-
-    for i in range(x // 8):
-        for j in range(y // 8):
-            bloc = Y_q[i*8:(i+1)*8, j*8:(j+1)*8] * Q
-            Y[i*8:(i+1)*8, j*8:(j+1)*8] = P.T @ bloc @ P
-
-    Y = Y + 128
-    img_rgb = ycbcr_to_rgb(Y, Cb, Cr)
-    return img_rgb / 255
+def decompression(img_compressed):
+    x, y, z = img_compressed.shape
+    img_uncompressed = np.zeros((x, y, 3))
+    P = DCT2_P() 
+    
+    for bloc in range(3):
+        for i in range(x // 8):
+            for j in range(y // 8):
+                img_8 = img_compressed[i*8:(i+1)*8, j*8:(j+1)*8, bloc]
+                img_8 = img_8 * Q 
+                img_8_uncompressed = np.transpose(P) @ img_8 @ P
+                img_uncompressed[i*8:(i+1)*8, j*8:(j+1)*8, bloc] = img_8_uncompressed
+                
+    img_uncompressed = img_uncompressed + 128
+    img_uncompressed = img_uncompressed / 255 
+    # Clip pour éviter les erreurs d'affichage si dépassement 0-1
+    return np.clip(img_uncompressed, 0, 1)
