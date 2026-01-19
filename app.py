@@ -14,6 +14,9 @@ with st.sidebar:
     st.header("Réglages")
     seuil = st.slider("Seuil de quantification", 0, 10, 2)
     st.info("Un seuil plus haut augmente la sparsité et réduit la taille du fichier.")
+    st.divider()
+    st.caption("👨‍💻 **Made by Romain Ben**")
+    st.caption("Projet : Compression JPEG custom")
 
 # 2. Upload de l'image
 uploaded_file = st.file_uploader("Importer une image (PNG, JPG)", type=["png", "jpg", "jpeg"])
