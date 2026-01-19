@@ -1,76 +1,71 @@
 import streamlit as st
 import numpy as np
-import matplotlib.pyplot as plt
+import cv2
 from scipy.sparse import csr_matrix
-import io
-import os
+from compression import compression, decompression
 
-# Import de tes fonctions depuis ton fichier de calcul
-from compression import compression, decompression, init
+st.set_page_config(page_title="JPEG + CSR Compression", layout="centered")
 
-st.set_page_config(page_title="Compresseur DCT/CSR", layout="centered")
+st.title("📷 Analyse de Compression DCT & CSR")
+st.write("Visualisation de la compression par blocs 8x8 sur les canaux RGB.")
 
-st.title("📷 Compression RGB via DCT et Matrices CSR")
-st.write("Cette application utilise votre algorithme personnalisé de compression par blocs 8x8.")
+# 1. Barre latérale pour les réglages
+with st.sidebar:
+    st.header("Réglages")
+    seuil = st.slider("Seuil de quantification", 0, 10, 2)
+    st.info("Un seuil plus haut augmente la sparsité et réduit la taille du fichier.")
 
-# 1. Upload
-uploaded_file = st.file_uploader("Choisir une image", type=["png", "jpg", "jpeg"])
-
-# 2. Paramètres
-seuil = st.slider("Seuil de suppression des coefficients", 0, 10, 2)
+# 2. Upload de l'image
+uploaded_file = st.file_uploader("Importer une image (PNG, JPG)", type=["png", "jpg", "jpeg"])
 
 if uploaded_file is not None:
-    # Lecture de l'image
+    # Lecture et conversion
     file_bytes = np.asarray(bytearray(uploaded_file.read()), dtype=np.uint8)
-    import cv2
     img = cv2.imdecode(file_bytes, 1)
-    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB) / 255.0 # Normalisation comme plt.imread
-    
-    col_orig, col_comp = st.columns(2)
-    
-    with col_orig:
-        st.subheader("Originale")
-        st.image(img, use_container_width=True)
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB) / 255.0
 
-    if st.button("Lancer la compression"):
-        # === ÉTAPE 1 : COMPRESSION (ton code) ===
-        # On récupère l'image quantifiée (dense)
-        img_comp_dense = compression(img, seuil)
-        
-        # === ÉTAPE 2 : TRANSFORMATION CSR ET CALCUL TAILLE ===
-        taille_csr_totale = 0
-        matrices_csr = []
-        
-        for c in range(3):
-            canal_int16 = img_comp_dense[:, :, c].astype(np.int16)
-            m_sparse = csr_matrix(canal_int16)
-            matrices_csr.append(m_sparse)
+    # Affichage Image Originale
+    st.subheader("🖼️ Image Originale")
+    st.image(img, use_container_width=True)
+
+    if st.button("🚀 Lancer la compression", use_container_width=True):
+        with st.spinner("Calcul des matrices DCT..."):
+            # === COMPRESSION ===
+            img_comp_dense = compression(img, seuil)
             
-            # Calcul de la taille réelle en mémoire du format CSR
-            # (data + indices + indptr)
-            taille_csr_totale += (m_sparse.data.nbytes + 
-                                 m_sparse.indices.nbytes + 
-                                 m_sparse.indptr.nbytes)
+            # === CALCUL TAILLE CSR ===
+            taille_csr_totale = 0
+            nnz_total = 0
+            pixels_total = img_comp_dense.shape[0] * img_comp_dense.shape[1] * 3
+            
+            for c in range(3):
+                canal_int16 = img_comp_dense[:, :, c].astype(np.int16)
+                m_sparse = csr_matrix(canal_int16)
+                # Taille : data (valeurs) + indices (colonnes) + indptr (lignes)
+                taille_csr_totale += (m_sparse.data.nbytes + m_sparse.indices.nbytes + m_sparse.indptr.nbytes)
+                nnz_total += m_sparse.nnz
 
-        # === ÉTAPE 3 : DÉCOMPRESSION POUR AFFICHAGE ===
-        img_final = decompression(img_comp_dense)
-        
-        with col_comp:
-            st.subheader("Décompressée")
-            st.image(img_final, use_container_width=True)
+            # === DECOMPRESSION ===
+            img_final = decompression(img_comp_dense)
 
-        # === ÉTAPE 4 : COMPARAISON DES TAILLES ===
+        # Affichage Image Compressée
+        st.subheader("📉 Image après Compression/Décompression")
+        st.image(img_final, use_container_width=True)
+
+        # === STATISTIQUES ===
         st.divider()
-        st.subheader("📊 Comparaison des tailles")
+        st.subheader("📊 Résultats de l'algorithme")
         
-        # Taille originale (données brutes non compressées)
-        taille_brute = img.nbytes 
-        
-        c1, c2, c3 = st.columns(3)
-        c1.metric("Format Brut (RGB)", f"{taille_brute / 1024:.1f} Ko")
-        c2.metric("Format CSR", f"{taille_csr_totale / 1024:.1f} Ko")
-        
+        taille_brute = img.nbytes
         ratio = taille_brute / taille_csr_totale
-        c3.metric("Ratio de Gain", f"{ratio:.2f}x")
+        sparsite = (1 - (nnz_total / pixels_total)) * 100
 
-        st.info(f"Le format CSR est ici **{ratio:.1f} fois plus léger** que l'image brute en mémoire grâce au seuillage (Seuil = {seuil}).")
+        col1, col2, col3 = st.columns(3)
+        col1.metric("Taille Initiale", f"{taille_brute / 1024:.1f} Ko")
+        col2.metric("Taille CSR", f"{taille_csr_totale / 1024:.1f} Ko")
+        col3.metric("Ratio de Gain", f"{ratio:.2f}x")
+
+        st.write(f"**Sparsité globale :** `{sparsite:.2f} %` de zéros dans les matrices DCT.")
+        
+        if seuil > 4:
+            st.warning("⚠️ Un seuil élevé provoque un effet de pixelisation (blocs 8x8 visibles).")
