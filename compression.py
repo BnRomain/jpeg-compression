@@ -53,8 +53,8 @@ def compression(img_input, seuil=2):
                 
                 # Ta logique de suppression de fréquences
                 D[np.abs(D) < seuil] = 0
-                D[5:, :] = 0
-                D[:, 5:] = 0 
+                D[6:, :] = 0
+                D[:, 6:] = 0 
                 
                 img_compressed[i*8:(i+1)*8, j*8:(j+1)*8, bloc] = D 
     return img_compressed
