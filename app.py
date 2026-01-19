@@ -13,7 +13,7 @@ st.sidebar.title("Réglages")
 seuil = st.sidebar.slider("Seuil de quantification", 0, 10, 2)
 st.sidebar.divider()
 st.sidebar.markdown("### 👨‍💻 Crédits")
-st.sidebar.caption("Made by Romain Ben")
+st.sidebar.caption("Made by Romain Ben and Evrard Lecureur")
 
 # === UPLOAD ===
 uploaded_file = st.file_uploader("Importer une image", type=["png", "jpg", "jpeg"])
