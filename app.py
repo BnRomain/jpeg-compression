@@ -78,7 +78,7 @@ if uploaded_file is not None:
         c_dl1.download_button(
             label="🖼️ Rendu visuel (PNG)",
             data=buffer_img.tobytes(),
-            file_name="rendu_romain.png",
+            file_name="rendu_compression.png",
             mime="image/png",
             use_container_width=True
         )
@@ -94,7 +94,7 @@ if uploaded_file is not None:
         c_dl2.download_button(
             label="💾 Matrices Sparse (NPZ)",
             data=buf_npz.getvalue(),
-            file_name="donnees_romain.npz",
+            file_name="donnees_compression.npz",
             mime="application/octet-stream",
             use_container_width=True
         )
