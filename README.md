@@ -39,7 +39,7 @@ L'application affiche en temps réel des métriques pour comparer l'efficacité 
 Si vous êtes intéressé par les détails théoriques et l'analyse complète de ce projet, vous pouvez consulter :
 
 - **📑 Rapport complet** : [Voir le rapport](Rapport.pdf)  
-- **📊 Présentation Slides** : [Voir la présentation](Presentation.pdf)  
+- **📊 Présentation Slides** : [Voir la présentation](Présentation.pdf)  
 
 Ces documents détaillent :
 - L'algorithme DCT & CSR utilisé  
