@@ -33,3 +33,15 @@ L'application affiche en temps réel des métriques pour comparer l'efficacité 
 
 ## 🔗 Démo en ligne
 👉 [Compresser une image](https://jpeg-csr-compression.streamlit.app/)
+
+## 📄 Rapport & Présentation
+
+Si vous êtes intéressé par les détails théoriques et l'analyse complète de ce projet, vous pouvez consulter :
+
+- **📑 Rapport complet** : [Voir le rapport](Rapport.pdf)  
+- **📊 Présentation Slides** : [Voir la présentation](Presentation.pdf)  
+
+Ces documents détaillent :
+- L'algorithme DCT & CSR utilisé  
+- Les résultats et métriques de compression  
+- Les illustrations et comparaisons visuelles  
