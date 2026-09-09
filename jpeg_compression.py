@@ -49,7 +49,7 @@ def compression(img_input, seuil=2):
             for j in range(y // 8):
                 img_8 = img[i*8:(i+1)*8, j*8:(j+1)*8, bloc]
                 D = D_matrix(img_8, P)
-                D = np.fix( D / Q ) 
+                D = np.trunc( D / Q ) 
                 
                 # Ta logique de suppression de fréquences
                 D[np.abs(D) < seuil] = 0
