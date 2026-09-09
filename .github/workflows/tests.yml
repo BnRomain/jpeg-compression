@@ -31,6 +31,13 @@ jobs:
         run: |
           pip install pytest
 
+      - name: Debug files
+        run: |
+          pwd
+          ls -la
+          python -c "import sys; print(sys.path)"
+          python -c "import os; print(os.listdir('.'))"
+
       - name: Run tests
         run: |
           python -m pytest -v
