@@ -3,7 +3,7 @@ import numpy as np
 import cv2
 import io
 from scipy.sparse import csr_matrix
-from compression import compression, decompression
+from jpeg_compression import compression, decompression
 
 st.set_page_config(page_title="JPEG + CSR Compression", layout="centered")
 
