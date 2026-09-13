@@ -3,3 +3,11 @@ __pycache__/
 .pytest_cache/
 .venv/
 venv/
+
+# C++
+cpp/build/
+cpp/jpeg_csr
+cpp/jpeg_csr.exe
+cpp/run_tests
+cpp/run_tests.exe
+cpp/resultats/

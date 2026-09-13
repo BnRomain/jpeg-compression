@@ -1,0 +1,29 @@
+name: C++ tests
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  cpp:
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: cpp
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Unit tests with AddressSanitizer and UBSan
+        run: make test SANITIZE=1
+
+      - name: Build and run the demo
+        run: |
+          make clean
+          make demo
