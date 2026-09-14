@@ -1,129 +1,130 @@
-# Compression d'image DCT + CSR : version C++
+# DCT + CSR Image Compression: C++ Version
 
-Portage en C++20 de la [version Python](../python) du projet : compression
-d'image inspirée de JPEG (DCT sur des blocs 8x8, quantification, troncature des
-hautes fréquences) et stockage des coefficients au format creux CSR. Le
-programme `jpeg_csr` fait en ligne de commande ce que font `jpeg_compression.py`
-et l'application Streamlit, et reprend les analyses du rapport MAM3.
+C++20 port of the project's [Python version](../python): JPEG-inspired image
+compression (DCT on 8x8 blocks, quantization, high-frequency truncation) with
+the coefficients stored in the CSR sparse format. The `jpeg_csr` program does on
+the command line what `jpeg_compression.py` and the Streamlit app do, and
+reproduces the analyses of the MAM3 report.
 
-Projet de programmation C++, MAM4 Polytech Nice Sophia : Romain Ben et Karim Zrig.
+C++ programming project, MAM4 at Polytech Nice Sophia: Romain Ben and Karim Zrig.
 
-- Rapport de synthèse (2 pages) : [`docs/rapport.pdf`](docs/rapport.pdf)
-- Présentation : [`docs/presentation.pdf`](docs/presentation.pdf)
+- Summary report (2 pages, French): [`docs/report-fr.pdf`](docs/report-fr.pdf)
+- Slides (French): [`docs/slides-fr.pdf`](docs/slides-fr.pdf)
 
-## Compiler
+## Build
 
-Prérequis : `g++` compatible C++20 (GCC 10 ou plus récent) et `make`. Sous
-Windows, MSYS2 fournit `g++` et `mingw32-make`, à utiliser à la place de `make`.
-
-```bash
-make                    # construit ./jpeg_csr
-make test               # exécute les tests unitaires
-make demo               # compresse images/astronaut.png avec plusieurs réglages
-make test SANITIZE=1    # tests sous AddressSanitizer et UBSan (Linux, macOS)
-```
-
-Options de compilation du cours : `-std=c++20 -Wall -Wextra -pedantic`.
-
-## Utiliser
+Requirements: a C++20 `g++` (GCC 10 or newer) and `make`. On Windows, MSYS2
+provides `g++` and `mingw32-make`, to use instead of `make`.
 
 ```bash
-./jpeg_csr compress images/astronaut.png --alpha 5 --out resultats/alpha5
-./jpeg_csr decompress resultats/alpha5/astronaut.csr resultats/relue.png
+make                    # builds ./jpeg_csr
+make test               # runs the unit tests
+make demo               # compresses images/astronaut.png with several settings
+make test SANITIZE=1    # tests under AddressSanitizer and UBSan (Linux, macOS)
 ```
 
-| Option | Rôle | Défaut |
+Compiler flags from the course: `-std=c++20 -Wall -Wextra -pedantic`.
+
+## Usage
+
+```bash
+./jpeg_csr compress images/astronaut.png --alpha 5 --out results/alpha5
+./jpeg_csr decompress results/alpha5/astronaut.csr results/decoded.png
+```
+
+| Option | Purpose | Default |
 |---|---|---|
-| `--table standard\|uniform\|low\|high` | matrice de quantification Q | `standard` |
-| `--alpha A` | facteur de qualité : Q devient A x Q | `1` |
-| `--threshold S` | annule les coefficients quantifiés de valeur absolue < S | `2` |
-| `--mask square\|triangle` | troncature carrée (k, l < F) ou triangulaire (k + l < F) | `square` |
-| `--cutoff F` | fréquence de coupure | `6` |
-| `--noise P` | bruit poivre et sel de probabilité P ajouté avant compression | `0` |
-| `--out DOSSIER` | dossier des résultats | `resultats` |
+| `--table standard\|uniform\|low\|high` | quantization matrix Q | `standard` |
+| `--alpha A` | quality factor: Q becomes A x Q | `1` |
+| `--threshold S` | zeroes the quantized coefficients with absolute value < S | `2` |
+| `--mask square\|triangle` | square (k, l < F) or triangular (k + l < F) truncation | `square` |
+| `--cutoff F` | cutoff frequency | `6` |
+| `--noise P` | salt-and-pepper noise with probability P, added before compression | `0` |
+| `--out DIR` | output directory | `results` |
 
-Les valeurs par défaut sont celles de l'application Python. `compress` écrit
-`<nom>.csr` (les trois matrices CSR, équivalent du `.npz`) et
-`<nom>_reconstruite.png`, puis affiche les indicateurs de Streamlit :
+The defaults are those of the Python app. `compress` writes `<name>.csr` (the
+three CSR matrices, the equivalent of the `.npz` file) and
+`<name>_reconstructed.png`, then prints the Streamlit metrics:
 
 ```text
-Coefficients   : 45566 non nuls sur 786432 (taux de conservation 5.79 %)
-Qualité        : erreur L2 relative 5.43 %, PSNR 30.49 dB
-Mémoire dense  : 6144.00 Ko (float64, comme img.nbytes)
-Mémoire CSR    : 273.00 Ko (valeurs int16, indices int32)
-Gain mémoire   : dense / CSR = 22.51x
-Fichier .csr   : 273.52 Ko, image source 773.00 Ko (source / .csr = 2.83x)
-Temps          : compression 28.23 ms, décompression 21.55 ms
+Coefficients   : 45566 non-zero out of 786432 (retention rate 5.79 %)
+Quality        : relative L2 error 5.43 %, PSNR 30.49 dB
+Dense memory   : 6144.00 KiB (float64, like img.nbytes)
+CSR memory     : 273.00 KiB (int16 values, int32 indices)
+Memory gain    : dense / CSR = 22.51x
+.csr file      : 273.52 KiB, source image 773.00 KiB (source / .csr = 2.83x)
+Time           : compression 28.23 ms, decompression 21.55 ms
 ```
 
-## Organisation du code
+## Code organization
 
 ```text
 cpp/
 ├── Makefile
-├── include/           un en-tête commenté par module
-├── src/               définitions et main.cpp
-├── tests/             tests unitaires (assert)
-├── scripts/           comparaison avec Python, génération des figures
-├── images/            images de test
-├── third_party/       stb_image et stb_image_write (domaine public)
-└── docs/              rapport et présentation (LaTeX et PDF)
+├── include/           one commented header per module
+├── src/               definitions and main.cpp
+├── tests/             unit tests (assert)
+├── scripts/           comparison with Python, figure generation
+├── images/            test images
+├── third_party/       stb_image and stb_image_write (public domain)
+└── docs/              report and slides (LaTeX and PDF, French)
 ```
 
-| Module | Rôle | Notions du cours |
+| Module | Purpose | Course concepts |
 |---|---|---|
-| `Matrix8` | bloc 8x8 et produit matriciel | `std::array`, surcharge de `operator()` et `operator*`, règle de zéro |
-| `Dct` | matrice P calculée une fois, D = P M Pᵀ et M = Pᵀ D P | classe, liste d'initialisation, méthodes `const` |
-| `QuantizationTable` | Q standard, uniforme, basses ou hautes fréquences, facteur alpha | invariant (diviseurs >= 1), `explicit`, exceptions |
-| `FrequencyMask` | interface, implémentée par `SquareMask` (Python) et `TriangleMask` (sujet) | classe abstraite, `virtual`, `override`, destructeur virtuel |
-| `Image` | image RGB, rognage aux multiples de 8 | invariant, `std::vector`, accès `const` et non `const`, `at()` vérifié |
-| `image_io` | lecture PNG/JPEG et écriture PNG via stb | RAII (`StbPixels`), copie interdite (`= delete`) |
-| `SparseMatrix` | matrice CSR écrite à la main | invariant vérifié, déplacement (`std::move`) |
-| `CompressedImage` | 3 matrices CSR + Q, fichier binaire `.csr` | composition, flux `std::ofstream` (RAII) |
-| `codec` | `compress` et `decompress` | `const T&`, référence sur l'interface |
-| `metrics`, `noise` | erreur L2 relative, PSNR, bruit poivre et sel | `T&` pour modifier, `<random>` |
-| `options`, `main` | ligne de commande et affichage | `std::string`, `enum class`, `try` / `catch` |
+| `Matrix8` | 8x8 block and matrix product | `std::array`, `operator()` and `operator*` overloads, rule of zero |
+| `Dct` | matrix P computed once, D = P M Pᵀ and M = Pᵀ D P | class, member initializer list, `const` methods |
+| `QuantizationTable` | standard, uniform, low- or high-frequency Q, alpha factor | invariant (divisors >= 1), `explicit`, exceptions |
+| `FrequencyMask` | interface implemented by `SquareMask` (Python) and `TriangleMask` (assignment) | abstract class, `virtual`, `override`, virtual destructor |
+| `Image` | RGB image, cropping to multiples of 8 | invariant, `std::vector`, `const` and non-`const` access, checked `at()` |
+| `image_io` | PNG, JPEG and BMP reading, PNG writing with stb | RAII (`StbPixels`), deleted copy (`= delete`) |
+| `SparseMatrix` | hand-written CSR matrix | checked invariant, move semantics (`std::move`) |
+| `CompressedImage` | 3 CSR matrices + Q, binary `.csr` file | composition, `std::ofstream` streams (RAII) |
+| `codec` | `compress` and `decompress` | `const T&`, reference to the interface |
+| `metrics`, `noise` | relative L2 error, PSNR, salt-and-pepper noise | `T&` to modify, `<random>` |
+| `options`, `main` | command line and output | `std::string`, `enum class`, `try` / `catch` |
 
-## Correspondance avec la version Python
+## Mapping to the Python version
 
 | Python (`jpeg_compression.py`, `app.py`) | C++ |
 |---|---|
-| `init(img)` | `Image::cropped_to_blocks()` et centrage dans `compress` |
-| `DCT2_P()`, `D_matrix(img_8, P)` | classe `Dct` |
-| `compression(img, seuil)` | `compress(image, table, threshold, mask)` |
+| `init(img)` | `Image::cropped_to_blocks()` and centering in `compress` |
+| `DCT2_P()`, `D_matrix(img_8, P)` | `Dct` class |
+| `compression(img, threshold)` | `compress(image, table, threshold, mask)` |
 | `decompression(img_compressed)` | `decompress(compressed)` |
-| `csr_matrix(canal.astype(np.int16))` | classe `SparseMatrix` |
-| `np.savez_compressed(...)` | `save_compressed` et `load_compressed` |
-| métriques de l'application | affichage de `jpeg_csr compress` |
+| `csr_matrix(channel.astype(np.int16))` | `SparseMatrix` class |
+| `np.savez_compressed(...)` | `save_compressed` and `load_compressed` |
+| app metrics | output of `jpeg_csr compress` |
 
 ## Validation
 
-- `make test` reprend les tests pytest de la version Python (orthogonalité de P,
-  rognage, suppression des hautes fréquences, bornes, conversion CSR) et vérifie
-  en plus les invariants de chaque classe, l'aller-retour par fichier `.csr` et
-  l'analyse de la ligne de commande. La CI GitHub les relance sous sanitizers.
-- `python scripts/compare_with_python.py images/astronaut.png` compresse la même
-  image avec les deux versions : 786 407 coefficients sur 786 432 sont identiques
-  et le nombre de non nuls est le même. Les 25 autres diffèrent de 1 : en Python,
-  l'image passe par /255 puis x255 et D/Q vaut par exemple 23.999999999999996 au
-  lieu de 24, que la troncature ramène à 23. Le C++ est environ 11 fois plus
-  rapide (50 ms contre 543 ms pour compression et décompression).
-- `python scripts/make_figures.py` régénère les figures de `docs/figures`.
+- `make test` mirrors the pytest tests of the Python version (orthogonality of P,
+  cropping, high-frequency removal, bounds, CSR conversion) and also checks the
+  invariant of each class, the round trip through a `.csr` file and the
+  command-line parsing. The GitHub CI runs them again under sanitizers.
+- `python scripts/compare_with_python.py images/astronaut.png` compresses the same
+  image with both versions: 786,407 of the 786,432 coefficients are identical
+  and the number of non-zero coefficients is the same. The other 25 differ by 1:
+  in Python, the image goes through /255 then x255, and D/Q is for instance
+  23.999999999999996 instead of 24, which truncation brings down to 23. The C++
+  version is about 11 times faster (50 ms versus 543 ms for compression and
+  decompression).
+- `python scripts/make_figures.py` regenerates the figures in `docs/figures`.
 
-## Sécurité
+## Security
 
-- Seuls les décodeurs PNG, JPEG et BMP de stb sont compilés et les images sont
-  limitées à 16384 pixels par côté (`Image::max_dimension`) : les calculs de taille
-  de stb, faits avec des `int`, ne peuvent pas déborder.
-- Les copies de stb calculent les tailles de tampons en `size_t` (alertes CodeQL
-  `cpp/integer-multiplication-cast-to-long`) : détail des modifications dans
+- Only the PNG, JPEG and BMP decoders of stb are compiled and images are limited
+  to 16384 pixels per side (`Image::max_dimension`): the size computations of
+  stb, done with `int`, cannot overflow.
+- The stb copies compute buffer sizes with `size_t` (CodeQL alerts
+  `cpp/integer-multiplication-cast-to-long`): the changes are listed in
   [`third_party/README.md`](third_party/README.md).
-- Un fichier `.csr` est entièrement revérifié à la lecture (dimensions, invariant
-  CSR, matrice Q) avant toute décompression.
+- A `.csr` file is fully validated when it is read (dimensions, CSR invariant,
+  Q matrix) before any decompression.
 
-## Crédits
+## Credits
 
-- [stb](https://github.com/nothings/stb) de Sean Barrett, domaine public (copie
-  modifiée, voir [`third_party/README.md`](third_party/README.md)).
-- Images de test issues de [scikit-image](https://scikit-image.org/) :
-  `astronaut.png` (NASA, domaine public) et `coffee.png` (Rachel Michetti, CC0).
+- [stb](https://github.com/nothings/stb) by Sean Barrett, public domain (modified
+  copy, see [`third_party/README.md`](third_party/README.md)).
+- Test images from [scikit-image](https://scikit-image.org/):
+  `astronaut.png` (NASA, public domain) and `coffee.png` (Rachel Michetti, CC0).

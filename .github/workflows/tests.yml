@@ -34,5 +34,9 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements-dev.txt
 
+      - name: Lint with Ruff
+        working-directory: .
+        run: ruff check python cpp/scripts
+
       - name: Run tests
         run: python -m pytest -v

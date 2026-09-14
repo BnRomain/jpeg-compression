@@ -35,7 +35,7 @@ jobs:
       - name: Ask for a manual review of major updates
         if: steps.metadata.outputs.update-type == 'version-update:semver-major'
         run: |
-          gh pr comment "$PR_URL" --body "Mise à jour majeure (${DEPENDENCIES}) : vérifier les changements incompatibles avant de fusionner à la main."
+          gh pr comment "$PR_URL" --body "Major update (${DEPENDENCIES}): check for breaking changes before merging manually."
         env:
           PR_URL: ${{ github.event.pull_request.html_url }}
           DEPENDENCIES: ${{ steps.metadata.outputs.dependency-names }}

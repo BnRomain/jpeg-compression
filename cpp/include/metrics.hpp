@@ -5,17 +5,17 @@
 
 namespace jpeg {
 
-// Indicateurs de qualité entre une image de référence et son approximation
-// (étape de post-processing du sujet). Les deux images doivent avoir les mêmes
-// dimensions, sinon std::invalid_argument est lancée.
+// Quality metrics between a reference image and its approximation
+// (post-processing step of the assignment). Both images must have the same
+// dimensions, otherwise std::invalid_argument is thrown.
 
-// Erreur relative en norme L2 : ||reference - approximation|| / ||reference||,
-// calculée sur les intensités [0, 255] des trois canaux.
+// Relative error in L2 norm: ||reference - approximation|| / ||reference||,
+// computed on the [0, 255] intensities of the three channels.
 double relative_l2_error(const Image& reference, const Image& approximation);
 
-// Rapport signal sur bruit de crête, en dB : 10 log10(255^2 / erreur quadratique
-// moyenne). Plus il est élevé, plus l'approximation est fidèle ; il vaut +infini
-// si les deux images sont identiques.
+// Peak signal-to-noise ratio, in dB: 10 log10(255^2 / mean squared error).
+// The higher it is, the closer the approximation; it is +infinity when both
+// images are identical.
 double psnr(const Image& reference, const Image& approximation);
 
 } // namespace jpeg

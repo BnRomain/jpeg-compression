@@ -1,8 +1,6 @@
-import numpy as np 
-from scipy.sparse import csr_matrix, load_npz
-import os
+import numpy as np
 
-# Matrice de quantification JPEG standard
+# Standard JPEG quantization matrix
 Q = np.array([
     [16, 11, 10, 16, 24, 40, 51, 61],
     [12, 12, 13, 19, 26, 58, 60, 55],
@@ -14,17 +12,19 @@ Q = np.array([
     [72, 92, 95, 98, 112, 100, 103, 99]
 ])
 
+
 def init(img):
-    # img est déjà en RGB (0-1) via l'appli
+    # img is already RGB in [0, 1] (see app.py)
     img_2D = img[:, :, 0]
     x, y = img_2D.shape
     x_new = x - x % 8
     y_new = y - y % 8
 
     img_new = img[:x_new, :y_new, :3]
-    # On passe en 0-255 puis on centre sur 128 (ton process)
+    # Back to [0, 255], then centered on 128
     img_new = (img_new * 255) - 128
     return img_new, x_new, y_new
+
 
 def DCT2_P():
     P = np.zeros((8, 8))
@@ -34,45 +34,48 @@ def DCT2_P():
             P[i, j] = (1/2) * C * np.cos(((2*j + 1) * i * np.pi) / 16)
     return P
 
-def D_matrix(img_8, P):
-    # On passe P en argument pour ne pas le recalculer 1000 fois
-    D = P @ img_8 @ np.transpose(P)
-    return D 
 
-def compression(img_input, seuil=2):
+def D_matrix(img_8, P):
+    # P is passed as an argument so that it is not recomputed for every block
+    D = P @ img_8 @ np.transpose(P)
+    return D
+
+
+def compression(img_input, threshold=2):
     img, x, y = init(img_input)
     img_compressed = np.zeros((x, y, 3))
     P = DCT2_P()
-    
-    for bloc in range(3):
+
+    for channel in range(3):
         for i in range(x // 8):
             for j in range(y // 8):
-                img_8 = img[i*8:(i+1)*8, j*8:(j+1)*8, bloc]
+                img_8 = img[i*8:(i+1)*8, j*8:(j+1)*8, channel]
                 D = D_matrix(img_8, P)
-                D = np.trunc( D / Q ) 
-                
-                # Ta logique de suppression de fréquences
-                D[np.abs(D) < seuil] = 0
+                D = np.trunc(D / Q)
+
+                # Frequency removal: small coefficients, then rows and columns >= 6
+                D[np.abs(D) < threshold] = 0
                 D[6:, :] = 0
-                D[:, 6:] = 0 
-                
-                img_compressed[i*8:(i+1)*8, j*8:(j+1)*8, bloc] = D 
+                D[:, 6:] = 0
+
+                img_compressed[i*8:(i+1)*8, j*8:(j+1)*8, channel] = D
     return img_compressed
 
+
 def decompression(img_compressed):
-    x, y, z = img_compressed.shape
+    x, y, _ = img_compressed.shape
     img_uncompressed = np.zeros((x, y, 3))
-    P = DCT2_P() 
-    
-    for bloc in range(3):
+    P = DCT2_P()
+
+    for channel in range(3):
         for i in range(x // 8):
             for j in range(y // 8):
-                img_8 = img_compressed[i*8:(i+1)*8, j*8:(j+1)*8, bloc]
-                img_8 = img_8 * Q 
+                img_8 = img_compressed[i*8:(i+1)*8, j*8:(j+1)*8, channel]
+                img_8 = img_8 * Q
                 img_8_uncompressed = np.transpose(P) @ img_8 @ P
-                img_uncompressed[i*8:(i+1)*8, j*8:(j+1)*8, bloc] = img_8_uncompressed
-                
+                img_uncompressed[i*8:(i+1)*8, j*8:(j+1)*8, channel] = img_8_uncompressed
+
     img_uncompressed = img_uncompressed + 128
-    img_uncompressed = img_uncompressed / 255 
-    # Clip pour éviter les erreurs d'affichage si dépassement 0-1
+    img_uncompressed = img_uncompressed / 255
+    # Clip to [0, 1] to avoid display errors on overflow
     return np.clip(img_uncompressed, 0, 1)

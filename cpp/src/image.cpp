@@ -12,7 +12,7 @@ namespace {
 std::size_t checked_dimension(std::size_t dimension)
 {
     if (dimension == 0 || dimension > Image::max_dimension) {
-        throw std::invalid_argument{"une dimension d'image doit être comprise entre 1 et "
+        throw std::invalid_argument{"an image dimension must be between 1 and "
                                     + std::to_string(Image::max_dimension)};
     }
     return dimension;
@@ -22,7 +22,7 @@ void check_bounds(std::size_t row, std::size_t col, std::size_t channel,
                   std::size_t width, std::size_t height)
 {
     if (row >= height || col >= width || channel >= Image::channels) {
-        throw std::out_of_range{"pixel en dehors de l'image"};
+        throw std::out_of_range{"pixel outside the image"};
     }
 }
 
@@ -78,8 +78,8 @@ const double& Image::at(std::size_t row, std::size_t col, std::size_t channel) c
 
 Image Image::cropped_to_blocks() const
 {
-    // Le constructeur refuse une dimension nulle : une image de moins de
-    // 8 pixels de côté provoque donc une exception plutôt qu'une image vide.
+    // The constructor rejects a zero dimension: an image smaller than 8 pixels
+    // on a side therefore throws instead of producing an empty image.
     Image result{width_ - width_ % block_size, height_ - height_ % block_size};
     for (std::size_t row{0}; row < result.height_; ++row) {
         for (std::size_t col{0}; col < result.width_; ++col) {

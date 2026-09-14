@@ -1,14 +1,14 @@
-# Version C++ du projet de compression d'image (DCT + CSR).
+# C++ version of the image compression project (DCT + CSR).
 #
-#   make                 construit le programme ./jpeg_csr
-#   make test            construit et exécute les tests unitaires
-#   make demo            compresse l'image de test avec plusieurs réglages
-#   make SANITIZE=1 ...  ajoute AddressSanitizer et UBSan (Linux, macOS)
-#   make clean           supprime les fichiers produits
+#   make                 builds the ./jpeg_csr program
+#   make test            builds and runs the unit tests
+#   make demo            compresses the sample image with several settings
+#   make SANITIZE=1 ...  adds AddressSanitizer and UBSan (Linux, macOS)
+#   make clean           removes the generated files
 
 CXX = g++
 CXXFLAGS ?= -std=c++20 -Wall -Wextra -pedantic -O2
-# -isystem : stb est une bibliothèque externe, ses avertissements ne nous concernent pas.
+# -isystem: stb is an external library, its warnings are not our concern.
 CPPFLAGS += -Iinclude -isystem third_party
 
 ifeq ($(SANITIZE),1)
@@ -16,9 +16,9 @@ CXXFLAGS += -g -fsanitize=address,undefined
 LDFLAGS += -fsanitize=address,undefined
 endif
 
-# Sous Windows (MinGW), g++ ajoute l'extension .exe et l'on lie statiquement :
-# l'exécutable ne dépend plus des DLL de MinGW, que d'autres versions présentes
-# dans le PATH (Git, MATLAB...) peuvent masquer.
+# On Windows (MinGW), g++ adds the .exe extension and the program is linked
+# statically: the executable no longer depends on the MinGW DLLs, which other
+# versions found in the PATH (Git, MATLAB...) can shadow.
 ifeq ($(OS),Windows_NT)
 EXE := .exe
 LDFLAGS += -static
@@ -42,7 +42,7 @@ $(TARGET): $(LIB_OBJECTS) $(BUILD)/main.o
 $(TEST_TARGET): $(LIB_OBJECTS) $(BUILD)/test_main.o
 	$(CXX) $(LDFLAGS) $^ -o $@
 
-# Tout objet est recompilé dès qu'un en-tête change : simple et suffisant ici.
+# Every object is rebuilt as soon as a header changes: simple and good enough here.
 $(BUILD)/%.o: src/%.cpp $(HEADERS) | $(BUILD)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $< -o $@
 
@@ -56,11 +56,11 @@ test: $(TEST_TARGET)
 	./$(TEST_TARGET)
 
 demo: $(TARGET)
-	./$(TARGET) compress images/astronaut.png --out resultats/standard
-	./$(TARGET) compress images/astronaut.png --alpha 5 --out resultats/alpha5
-	./$(TARGET) compress images/astronaut.png --alpha 20 --out resultats/alpha20
-	./$(TARGET) compress images/astronaut.png --noise 0.05 --mask triangle --cutoff 4 --out resultats/bruit
-	./$(TARGET) decompress resultats/standard/astronaut.csr resultats/standard/relue.png
+	./$(TARGET) compress images/astronaut.png --out results/standard
+	./$(TARGET) compress images/astronaut.png --alpha 5 --out results/alpha5
+	./$(TARGET) compress images/astronaut.png --alpha 20 --out results/alpha20
+	./$(TARGET) compress images/astronaut.png --noise 0.05 --mask triangle --cutoff 4 --out results/noise
+	./$(TARGET) decompress results/standard/astronaut.csr results/standard/decoded.png
 
 clean:
-	rm -rf $(BUILD) resultats jpeg_csr jpeg_csr.exe run_tests run_tests.exe
+	rm -rf $(BUILD) results jpeg_csr jpeg_csr.exe run_tests run_tests.exe

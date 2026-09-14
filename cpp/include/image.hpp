@@ -6,47 +6,47 @@
 
 namespace jpeg {
 
-// Image couleur RGB chargée en mémoire.
+// RGB color image loaded in memory.
 //
-// Représentation : width x height pixels sur 3 canaux (rouge, vert, bleu),
-// c'est le tableau nx x ny x 3 du sujet. Les intensités sont des réels de
-// [0, 255] rangés ligne par ligne dans un unique std::vector :
-//   indice = (row * width + col) * 3 + channel
+// Representation: width x height pixels on 3 channels (red, green, blue), the
+// nx x ny x 3 array of the assignment. Intensities are real numbers in
+// [0, 255] stored row by row in a single std::vector:
+//   index = (row * width + col) * 3 + channel
 //
-// Invariant : 0 < width, height <= max_dimension et
+// Invariant: 0 < width, height <= max_dimension and
 // pixels_.size() == width * height * 3.
-// Le constructeur l'établit, la représentation est privée et aucune méthode
-// ne change la taille : le code extérieur ne peut pas casser l'invariant.
+// The constructor establishes it, the representation is private and no method
+// changes the size: outside code cannot break the invariant.
 //
-// Le stockage est confié à std::vector, qui se copie, se déplace et se libère
-// seul : aucune opération spéciale n'est écrite (règle de zéro).
+// Storage is delegated to std::vector, which copies, moves and frees itself:
+// no special member function is written (rule of zero).
 class Image {
 public:
     static constexpr std::size_t channels{3};
 
-    // Plus grande largeur ou hauteur acceptée. stb calcule certaines tailles de
-    // tampons avec des produits d'int : avec au plus 16384 pixels par côté,
-    // (16384 * 3 + 1) * 16384 < 2^31 et ces calculs ne peuvent pas déborder.
+    // Largest accepted width or height. stb computes some buffer sizes with
+    // int products: with at most 16384 pixels per side,
+    // (16384 * 3 + 1) * 16384 < 2^31 and these computations cannot overflow.
     static constexpr std::size_t max_dimension{16384};
 
-    // Lance std::invalid_argument si une dimension est nulle ou dépasse max_dimension.
+    // Throws std::invalid_argument if a dimension is zero or exceeds max_dimension.
     Image(std::size_t width, std::size_t height, double value = 0.0);
 
     std::size_t width() const noexcept;
     std::size_t height() const noexcept;
-    std::size_t size() const noexcept;   // nombre de valeurs : width * height * 3
+    std::size_t size() const noexcept;   // number of values: width * height * 3
 
-    // Accès rapide sans vérification des bornes, pour les boucles de calcul.
+    // Fast access without bounds checking, for computation loops.
     double& operator()(std::size_t row, std::size_t col, std::size_t channel);
     const double& operator()(std::size_t row, std::size_t col, std::size_t channel) const;
 
-    // Accès vérifié : lance std::out_of_range en dehors de l'image.
+    // Checked access: throws std::out_of_range outside the image.
     double& at(std::size_t row, std::size_t col, std::size_t channel);
     const double& at(std::size_t row, std::size_t col, std::size_t channel) const;
 
-    // Copie rognée aux plus grands multiples de 8 (étape init() de la version
-    // Python). L'image courante n'est pas modifiée, d'où le const.
-    // Lance std::invalid_argument si l'image fait moins de 8 pixels de côté.
+    // Copy cropped to the largest multiples of 8 (init() step of the Python
+    // version). The current image is not modified, hence the const.
+    // Throws std::invalid_argument if the image is smaller than 8 pixels on a side.
     Image cropped_to_blocks() const;
 
 private:

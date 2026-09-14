@@ -1,12 +1,12 @@
-"""Génère les vignettes du rapport et de la présentation dans docs/figures.
+"""Generate the thumbnails of the report and the slides in docs/figures.
 
-Le script lance ./jpeg_csr avec les réglages étudiés, puis assemble des zooms
-alignés sur la grille des blocs 8x8 et agrandis sans lissage, pour que les
-artefacts de bloc restent visibles.
+The script runs ./jpeg_csr with the studied settings, then assembles close-ups
+aligned with the 8x8 block grid and enlarged without smoothing, so that block
+artifacts remain visible.
 
-Usage, depuis le dossier cpp/ après `make` :
+Usage, from the cpp/ folder after `make`:
     python scripts/make_figures.py
-Dépendances : numpy et opencv (python/requirements.txt).
+Dependencies: numpy and opencv (python/requirements.txt).
 """
 
 import os
@@ -19,20 +19,20 @@ import numpy as np
 CPP_DIR = Path(__file__).resolve().parents[1]
 EXECUTABLE = CPP_DIR / ("jpeg_csr.exe" if os.name == "nt" else "jpeg_csr")
 IMAGE = CPP_DIR / "images" / "astronaut.png"
-RUNS_DIR = CPP_DIR / "resultats" / "figures"
+RUNS_DIR = CPP_DIR / "results" / "figures"
 FIGURES_DIR = CPP_DIR / "docs" / "figures"
 
 RUNS = {
     "alpha1": [],
     "alpha5": ["--alpha", "5"],
     "alpha20": ["--alpha", "20"],
-    "uniforme": ["--table", "uniform"],
-    "basses": ["--table", "low", "--cutoff", "8"],
-    "hautes": ["--table", "high", "--cutoff", "8"],
-    "bruit": ["--noise", "0.05", "--mask", "triangle", "--cutoff", "4"],
+    "uniform": ["--table", "uniform"],
+    "low": ["--table", "low", "--cutoff", "8"],
+    "high": ["--table", "high", "--cutoff", "8"],
+    "noise": ["--noise", "0.05", "--mask", "triangle", "--cutoff", "4"],
 }
 
-# Zone du visage : coin et taille multiples de 8.
+# Face area: corner and size are multiples of 8.
 TOP, LEFT, SIZE, ZOOM = 64, 136, 192, 2
 
 
@@ -46,7 +46,7 @@ def zoom(image):
 
 
 def reconstructed(name):
-    return zoom(read(RUNS_DIR / name / "astronaut_reconstruite.png"))
+    return zoom(read(RUNS_DIR / name / "astronaut_reconstructed.png"))
 
 
 def save_strip(images, name):
@@ -67,11 +67,11 @@ def main():
 
     original = zoom(read(IMAGE))
     save_strip([original, reconstructed("alpha1"), reconstructed("alpha5"), reconstructed("alpha20")], "alpha.png")
-    save_strip([reconstructed("alpha1"), reconstructed("uniforme"), reconstructed("basses"),
-                reconstructed("hautes")], "tables.png")
-    noisy = zoom(read(RUNS_DIR / "bruit" / "astronaut_bruitee.png"))
-    save_strip([original, noisy, reconstructed("bruit")], "bruit.png")
-    print("Figures écrites dans", FIGURES_DIR)
+    save_strip([reconstructed("alpha1"), reconstructed("uniform"), reconstructed("low"),
+                reconstructed("high")], "tables.png")
+    noisy = zoom(read(RUNS_DIR / "noise" / "astronaut_noisy.png"))
+    save_strip([original, noisy, reconstructed("noise")], "noise.png")
+    print("Figures written to", FIGURES_DIR)
 
 
 if __name__ == "__main__":

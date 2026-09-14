@@ -1,0 +1,35 @@
+cff-version: 1.2.0
+message: "If you use this project, please cite it using the metadata below."
+type: software
+title: "JPEG-inspired image compression with DCT and CSR sparse matrices"
+abstract: >-
+  Educational implementation of a JPEG-inspired lossy image compression:
+  8x8 block DCT, quantization, high-frequency truncation and CSR sparse
+  storage, available as a Python Streamlit app and as a C++20 command-line
+  program.
+authors:
+  - given-names: Romain
+    family-names: Ben
+    affiliation: "Polytech Nice Sophia, Université Côte d'Azur"
+  - given-names: Evrard
+    family-names: Lecureur
+    affiliation: "Polytech Nice Sophia, Université Côte d'Azur"
+  - given-names: Zouhair
+    family-names: Saitout
+    affiliation: "Polytech Nice Sophia, Université Côte d'Azur"
+  - given-names: Karim
+    family-names: Zrig
+    affiliation: "Polytech Nice Sophia, Université Côte d'Azur"
+version: 1.0.0
+license: MIT
+repository-code: "https://github.com/BnRomain/jpeg-compression"
+url: "https://jpeg-csr-compression.streamlit.app/"
+keywords:
+  - image compression
+  - JPEG
+  - discrete cosine transform
+  - sparse matrix
+  - CSR
+  - C++
+  - Python
+  - Streamlit

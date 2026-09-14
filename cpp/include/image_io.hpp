@@ -7,20 +7,20 @@
 
 namespace jpeg {
 
-// Lecture et écriture de fichiers image.
-// Toute la dépendance à la bibliothèque stb est confinée dans image_io.cpp :
-// le reste du programme ne manipule que la classe Image.
+// Reading and writing image files.
+// The whole dependency on the stb library is confined to image_io.cpp: the
+// rest of the program only handles the Image class.
 
-// Lit une image PNG, JPEG ou BMP (seuls formats compilés, au plus
-// Image::max_dimension pixels de côté). Une image en niveaux de gris est convertie
-// en RGB et un éventuel canal alpha (transparence) est ignoré, comme dans le
-// prétraitement de la version Python.
-// Lance std::runtime_error si le fichier est illisible.
+// Reads a PNG, JPEG or BMP image (the only compiled formats, at most
+// Image::max_dimension pixels per side). A grayscale image is converted to RGB
+// and an alpha (transparency) channel is ignored, like the preprocessing of the
+// Python version.
+// Throws std::runtime_error if the file cannot be read.
 Image load_image(const std::string& path);
 
-// Écrit l'image au format PNG. Les intensités sont bornées à [0, 255] puis
-// arrondies à l'entier le plus proche.
-// Lance std::runtime_error en cas d'échec d'écriture.
+// Writes the image as PNG. Intensities are clamped to [0, 255], then rounded
+// to the nearest integer.
+// Throws std::runtime_error if writing fails.
 void save_png(const Image& image, const std::string& path);
 
 } // namespace jpeg

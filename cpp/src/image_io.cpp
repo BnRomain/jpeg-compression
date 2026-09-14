@@ -1,13 +1,13 @@
 #include "image_io.hpp"
 
-// stb est une bibliothèque « header-only » : son code n'est compilé que dans
-// le fichier qui définit la macro *_IMPLEMENTATION, ici et nulle part ailleurs.
-// Le dossier third_party est passé à g++ avec -isystem pour ne pas afficher
-// les avertissements internes à stb.
+// stb is a header-only library: its code is only compiled in the file that
+// defines the *_IMPLEMENTATION macro, here and nowhere else.
+// The third_party folder is passed to g++ with -isystem so that the internal
+// warnings of stb are not shown.
 //
-// Sécurité : seuls les décodeurs utiles (PNG, JPEG, BMP) sont compilés, ce qui
-// réduit la surface d'attaque face à un fichier malveillant, et stb refuse les
-// images de plus de Image::max_dimension pixels de côté.
+// Security: only the needed decoders (PNG, JPEG, BMP) are compiled, which
+// reduces the attack surface against a malicious file, and stb rejects images
+// larger than Image::max_dimension pixels per side.
 #define STBI_ONLY_PNG
 #define STBI_ONLY_JPEG
 #define STBI_ONLY_BMP
@@ -22,23 +22,23 @@
 #include <stdexcept>
 #include <vector>
 
-// La limite de stb et l'invariant de Image doivent rester identiques.
+// The stb limit and the Image invariant must stay identical.
 static_assert(STBI_MAX_DIMENSIONS == jpeg::Image::max_dimension);
 
 namespace jpeg {
 
 namespace {
 
-// Tableau de pixels alloué par stbi_load, qui doit être rendu avec
-// stbi_image_free. Plutôt que d'appeler stbi_image_free à la main (et de
-// l'oublier si une exception survient), la ressource est liée à la durée de
-// vie de cet objet : RAII, comme GmshSession dans le TD de synthèse.
+// Pixel array allocated by stbi_load, which must be released with
+// stbi_image_free. Rather than calling stbi_image_free by hand (and forgetting
+// it when an exception is thrown), the resource is tied to the lifetime of this
+// object: RAII, like GmshSession in the final lab of the course.
 class StbPixels {
 public:
     explicit StbPixels(const std::string& path);
     ~StbPixels();
 
-    // Deux objets ne doivent pas libérer le même tableau : copie interdite.
+    // Two objects must not free the same array: copying is forbidden.
     StbPixels(const StbPixels&) = delete;
     StbPixels& operator=(const StbPixels&) = delete;
 
@@ -55,14 +55,14 @@ private:
 StbPixels::StbPixels(const std::string& path)
 {
     int channels_in_file{};
-    // Le dernier argument impose 3 canaux quel que soit le fichier :
-    // stb convertit le gris en RGB et supprime le canal alpha.
+    // The last argument requests 3 channels whatever the file:
+    // stb converts grayscale to RGB and drops the alpha channel.
     data_ = stbi_load(path.c_str(), &width_, &height_, &channels_in_file,
                       static_cast<int>(Image::channels));
     if (data_ == nullptr) {
-        // Si le constructeur lance, le destructeur n'est pas appelé ; ce n'est
-        // pas un problème ici puisque rien n'a été alloué.
-        throw std::runtime_error{"impossible de lire l'image '" + path + "' ("
+        // If the constructor throws, the destructor is not called; this is not
+        // a problem here since nothing was allocated.
+        throw std::runtime_error{"cannot read image '" + path + "' ("
                                  + stbi_failure_reason() + ")"};
     }
 }
@@ -94,7 +94,7 @@ Image load_image(const std::string& path)
     const StbPixels pixels{path};
     Image image{pixels.width(), pixels.height()};
 
-    // stb range lui aussi les pixels ligne par ligne, canal par canal.
+    // stb also stores the pixels row by row, channel by channel.
     std::size_t index{0};
     for (std::size_t row{0}; row < image.height(); ++row) {
         for (std::size_t col{0}; col < image.width(); ++col) {
@@ -105,7 +105,7 @@ Image load_image(const std::string& path)
         }
     }
     return image;
-}   // pixels est détruit ici : stbi_image_free est appelé automatiquement
+}   // pixels is destroyed here: stbi_image_free is called automatically
 
 void save_png(const Image& image, const std::string& path)
 {
@@ -125,7 +125,7 @@ void save_png(const Image& image, const std::string& path)
     const int height{static_cast<int>(image.height())};
     const int channels{static_cast<int>(Image::channels)};
     if (stbi_write_png(path.c_str(), width, height, channels, bytes.data(), width * channels) == 0) {
-        throw std::runtime_error{"impossible d'écrire l'image '" + path + "'"};
+        throw std::runtime_error{"cannot write image '" + path + "'"};
     }
 }
 

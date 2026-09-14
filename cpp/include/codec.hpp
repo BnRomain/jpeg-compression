@@ -8,25 +8,25 @@
 
 namespace jpeg {
 
-// Compression de l'image, canal par canal et bloc 8 x 8 par bloc 8 x 8
-// (fonction compression() de la version Python) :
-//   1. rognage aux multiples de 8, puis centrage : [0, 255] -> [-128, 127] ;
-//   2. DCT : D = P M P^T ;
-//   3. quantification : D_{k,l} / Q_{k,l} tronqué vers zéro (np.trunc) ;
-//   4. seuil : annulation des coefficients de valeur absolue < threshold ;
-//   5. masque : annulation des hautes fréquences rejetées par `mask` ;
-//   6. stockage des coefficients de chaque canal dans une matrice CSR.
+// Compresses the image channel by channel, one 8 x 8 block at a time
+// (compression() in the Python version):
+//   1. cropping to multiples of 8, then centering: [0, 255] -> [-128, 127];
+//   2. DCT: D = P M P^T;
+//   3. quantization: D_{k,l} / Q_{k,l} truncated toward zero (np.trunc);
+//   4. threshold: coefficients with an absolute value < threshold are zeroed;
+//   5. mask: the high frequencies rejected by `mask` are zeroed;
+//   6. the coefficients of each channel are stored in a CSR matrix.
 //
-// Les arguments sont seulement lus : références constantes, aucune copie.
-// `mask` est une référence sur l'interface FrequencyMask : n'importe quelle
-// stratégie de troncature convient, sans modifier cette fonction.
-// Lance std::invalid_argument si threshold < 0 ou si l'image est trop petite.
+// The arguments are only read: const references, no copies.
+// `mask` is a reference to the FrequencyMask interface: any truncation
+// strategy works without changing this function.
+// Throws std::invalid_argument if threshold < 0 or if the image is too small.
 CompressedImage compress(const Image& image, const QuantizationTable& table,
                          int threshold, const FrequencyMask& mask);
 
-// Décompression (fonction decompression() de la version Python), bloc par bloc :
-// multiplication terme à terme par Q, DCT inverse M = P^T D P, décentrage
-// (+128) puis bornage des intensités à [0, 255] (np.clip).
+// Decompression (decompression() in the Python version), block by block:
+// element-wise multiplication by Q, inverse DCT M = P^T D P, un-centering
+// (+128), then clamping of the intensities to [0, 255] (np.clip).
 Image decompress(const CompressedImage& compressed);
 
 } // namespace jpeg

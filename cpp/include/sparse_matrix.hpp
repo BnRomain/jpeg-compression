@@ -7,40 +7,40 @@
 
 namespace jpeg {
 
-// Matrice creuse au format CSR (Compressed Sparse Row), équivalent de
-// scipy.sparse.csr_matrix dans la version Python. Après quantification, la
-// grande majorité des coefficients est nulle : on ne stocke que les autres.
+// Sparse matrix in CSR (Compressed Sparse Row) format, the equivalent of
+// scipy.sparse.csr_matrix in the Python version. After quantization, most
+// coefficients are zero: only the others are stored.
 //
-// Représentation (nnz = nombre de coefficients non nuls) :
-//   values_          [nnz]     valeurs non nulles, ligne par ligne (int16) ;
-//   column_indices_  [nnz]     colonne de chaque valeur (int32) ;
-//   row_pointers_    [rows+1]  la ligne i occupe les positions
-//                              [row_pointers_[i], row_pointers_[i+1]) des deux
-//                              tableaux précédents (int32).
-// Mêmes types que scipy (données int16, indices int32) : les tailles mémoire
-// des deux versions sont directement comparables.
+// Representation (nnz = number of non-zero coefficients):
+//   values_          [nnz]     non-zero values, row by row (int16);
+//   column_indices_  [nnz]     column of each value (int32);
+//   row_pointers_    [rows+1]  row i occupies positions
+//                              [row_pointers_[i], row_pointers_[i+1]) of the
+//                              two previous arrays (int32).
+// Same types as SciPy (int16 data, int32 indices): the memory sizes of both
+// versions are directly comparable.
 //
-// Exemple :   | 5 0 0 |      values_         = {5, 3, 7}
+// Example:    | 5 0 0 |      values_         = {5, 3, 7}
 //             | 0 0 0 |  ->  column_indices_ = {0, 1, 2}
 //             | 0 3 7 |      row_pointers_   = {0, 1, 1, 3}
 //
-// Invariant :
+// Invariant:
 //   row_pointers_.size() == rows + 1, row_pointers_[0] == 0,
-//   row_pointers_ croissant et row_pointers_[rows] == nnz ;
-//   values_.size() == column_indices_.size() == nnz ;
-//   sur une ligne, colonnes strictement croissantes et dans [0, cols) ;
-//   aucune valeur stockée n'est nulle.
-// Les trois tableaux sont des std::vector : règle de zéro.
+//   row_pointers_ non-decreasing and row_pointers_[rows] == nnz;
+//   values_.size() == column_indices_.size() == nnz;
+//   within a row, columns strictly increasing and in [0, cols);
+//   no stored value is zero.
+// The three arrays are std::vector: rule of zero.
 class SparseMatrix {
 public:
-    // Construit la matrice CSR à partir d'une matrice dense rows x cols rangée
-    // ligne par ligne. Lance std::invalid_argument si la taille ne correspond pas.
+    // Builds the CSR matrix from a dense rows x cols matrix stored row by row.
+    // Throws std::invalid_argument if the size does not match.
     SparseMatrix(std::size_t rows, std::size_t cols, const std::vector<std::int16_t>& dense);
 
-    // Construit la matrice à partir des trois tableaux CSR (relecture d'un
-    // fichier). Les tableaux sont reçus par valeur puis déplacés dans l'objet,
-    // sans recopie des éléments.
-    // Lance std::invalid_argument si l'invariant n'est pas respecté.
+    // Builds the matrix from the three CSR arrays (when a file is read back).
+    // The arrays are taken by value, then moved into the object, without
+    // copying the elements.
+    // Throws std::invalid_argument if the invariant does not hold.
     SparseMatrix(std::size_t rows, std::size_t cols,
                  std::vector<std::int16_t> values,
                  std::vector<std::int32_t> column_indices,
@@ -50,14 +50,14 @@ public:
     std::size_t cols() const noexcept;
     std::size_t nnz() const noexcept;
 
-    // Coefficient (row, col), nul s'il n'est pas stocké.
-    // Lance std::out_of_range en dehors de la matrice.
+    // Coefficient (row, col), zero if it is not stored.
+    // Throws std::out_of_range outside the matrix.
     std::int16_t at(std::size_t row, std::size_t col) const;
 
     std::vector<std::int16_t> to_dense() const;
 
-    // Octets occupés par les trois tableaux, comme
-    // data.nbytes + indices.nbytes + indptr.nbytes en Python.
+    // Bytes used by the three arrays, like
+    // data.nbytes + indices.nbytes + indptr.nbytes in Python.
     std::size_t storage_bytes() const noexcept;
 
     const std::vector<std::int16_t>& values() const noexcept;

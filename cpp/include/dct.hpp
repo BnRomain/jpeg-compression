@@ -5,31 +5,31 @@
 
 namespace jpeg {
 
-// Transformée en cosinus discrète bidimensionnelle (DCT-II) d'un bloc 8 x 8.
+// Two-dimensional discrete cosine transform (DCT-II) of an 8 x 8 block.
 //
-// Pour un bloc M d'intensités centrées dans [-128, 127] :
+// For a block M of intensities centered in [-128, 127]:
 //   D_{k,l} = 1/4 C_k C_l  sum_{i,j} M_{i,j} cos((2i+1) k pi / 16) cos((2j+1) l pi / 16)
-// avec C_0 = 1/sqrt(2) et C_k = 1 pour k > 0.
+// with C_0 = 1/sqrt(2) and C_k = 1 for k > 0.
 //
-// Cette formule est un changement de base orthonormée qui s'écrit
-//   D = P M P^T     (passage en fréquentiel : compression)
-//   M = P^T D P     (retour aux intensités : décompression)
-// où P_{k,i} = (C_k / 2) cos((2i+1) k pi / 16). P étant orthogonale, son
-// inverse est sa transposée : aucune inversion de matrice n'est nécessaire.
+// This formula is an orthonormal change of basis, written
+//   D = P M P^T     (to the frequency domain: compression)
+//   M = P^T D P     (back to intensities: decompression)
+// where P_{k,i} = (C_k / 2) cos((2i+1) k pi / 16). Since P is orthogonal, its
+// inverse is its transpose: no matrix inversion is needed.
 //
-// P et P^T sont calculées une seule fois, à la construction, puis réutilisées
-// pour tous les blocs (en Python, P était passée en argument pour la même raison).
+// P and P^T are computed once, in the constructor, then reused for every block
+// (the Python version passed P as an argument for the same reason).
 class Dct {
 public:
     Dct();
 
-    const Matrix8& basis() const noexcept;               // la matrice P
+    const Matrix8& basis() const noexcept;               // the matrix P
     Matrix8 forward(const Matrix8& block) const;         // D = P M P^T
     Matrix8 inverse(const Matrix8& coefficients) const;  // M = P^T D P
 
 private:
-    // L'ordre de déclaration fixe l'ordre d'initialisation : p_ doit exister
-    // avant que p_transposed_ soit calculée à partir d'elle.
+    // The declaration order sets the initialization order: p_ must exist
+    // before p_transposed_ is computed from it.
     Matrix8 p_;
     Matrix8 p_transposed_;
 };

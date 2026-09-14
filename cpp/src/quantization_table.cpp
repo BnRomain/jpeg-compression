@@ -9,10 +9,10 @@ namespace {
 
 using Rows = std::array<std::array<double, block_size>, block_size>;
 
-// Matrice de la norme JPEG telle qu'elle figure dans le sujet MAM3 et dans
-// jpeg_compression.py. La norme donne 14 en position (1, 2) ; on conserve le
-// 13 de la version Python pour que les deux programmes produisent exactement
-// les mêmes coefficients et puissent être comparés.
+// JPEG standard matrix as given in the MAM3 assignment and in
+// jpeg_compression.py. The standard has 14 at position (1, 2); the 13 of the
+// Python version is kept so that both programs produce exactly the same
+// coefficients and can be compared.
 const Rows standard_rows{{
     {16, 11, 10, 16, 24, 40, 51, 61},
     {12, 12, 13, 19, 26, 58, 60, 55},
@@ -28,9 +28,9 @@ Matrix8 checked_divisors(const Matrix8& divisors)
 {
     for (std::size_t k{0}; k < block_size; ++k) {
         for (std::size_t l{0}; l < block_size; ++l) {
-            // Écrit !(d >= 1) plutôt que d < 1 pour rejeter aussi NaN.
+            // Written !(d >= 1) rather than d < 1 to also reject NaN.
             if (!(divisors(k, l) >= 1.0)) {
-                throw std::invalid_argument{"les diviseurs de quantification doivent être >= 1"};
+                throw std::invalid_argument{"quantization divisors must be >= 1"};
             }
         }
     }
@@ -61,9 +61,9 @@ QuantizationTable QuantizationTable::uniform(double value)
 
 QuantizationTable QuantizationTable::low_frequencies()
 {
-    // Matrice Q_filtre_HF du script Python : diviseur 1 pour k + l <= 2,
-    // 10 sur la diagonale k + l = 3 et 1000 ailleurs. Seules les toutes
-    // premières fréquences survivent : c'est un filtre passe-bas.
+    // Q_filtre_HF matrix of the MAM3 Python script: divisor 1 for k + l <= 2,
+    // 10 on the diagonal k + l = 3 and 1000 elsewhere. Only the very first
+    // frequencies survive: this is a low-pass filter.
     Matrix8 divisors{1000.0};
     for (std::size_t k{0}; k < block_size; ++k) {
         for (std::size_t l{0}; l < block_size; ++l) {
@@ -79,9 +79,9 @@ QuantizationTable QuantizationTable::low_frequencies()
 
 QuantizationTable QuantizationTable::high_frequencies()
 {
-    // Matrice Q_special du script Python : diviseur 1000 sur le carré des
-    // basses fréquences (k, l < 5), sauf la composante continue D_{0,0} gardée
-    // à 16, et 1 ailleurs. On conserve surtout les hautes fréquences (contours).
+    // Q_special matrix of the MAM3 Python script: divisor 1000 on the square of
+    // low frequencies (k, l < 5), except the DC component D_{0,0} kept at 16,
+    // and 1 elsewhere. Mostly the high frequencies (edges) are kept.
     Matrix8 divisors{1.0};
     for (std::size_t k{0}; k < 5; ++k) {
         for (std::size_t l{0}; l < 5; ++l) {
@@ -95,7 +95,7 @@ QuantizationTable QuantizationTable::high_frequencies()
 QuantizationTable QuantizationTable::scaled(double alpha) const
 {
     if (!(alpha > 0.0)) {
-        throw std::invalid_argument{"le facteur alpha doit être strictement positif"};
+        throw std::invalid_argument{"the alpha factor must be strictly positive"};
     }
     Matrix8 divisors{divisors_};
     for (std::size_t k{0}; k < block_size; ++k) {
@@ -103,7 +103,7 @@ QuantizationTable QuantizationTable::scaled(double alpha) const
             divisors(k, l) *= alpha;
         }
     }
-    // Le constructeur revérifie l'invariant : alpha < 1 peut produire un diviseur < 1.
+    // The constructor checks the invariant again: alpha < 1 can produce a divisor < 1.
     return QuantizationTable{divisors};
 }
 

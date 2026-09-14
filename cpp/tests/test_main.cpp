@@ -1,10 +1,10 @@
-// Tests unitaires de la version C++, écrits avec assert comme dans les TD.
-// Ils reprennent les tests pytest de python/tests/test_compression.py et
-// ajoutent la vérification des invariants de chaque classe.
+// Unit tests of the C++ version, written with assert as in the course labs.
+// They mirror the pytest tests of python/tests/test_compression.py and also
+// check the invariant of each class.
 //
-// Lancement : make test   (ou make test SANITIZE=1 sous Linux / macOS)
+// Run: make test   (or make test SANITIZE=1 on Linux / macOS)
 
-#undef NDEBUG   // assert doit rester actif quelles que soient les options de compilation
+#undef NDEBUG   // assert must stay enabled whatever the compiler options
 
 #include "codec.hpp"
 #include "compressed_image.hpp"
@@ -30,9 +30,9 @@
 #include <string>
 #include <vector>
 
-// Vérifie que `statement` lance une exception du type attendu. L'instruction
-// est passée entre parenthèses pour que ses virgules ne séparent pas les
-// arguments de la macro.
+// Checks that `statement` throws an exception of the expected type. The
+// statement is passed in parentheses so that its commas do not split the
+// macro arguments.
 #define ASSERT_THROWS(statement, exception_type) \
     do {                                         \
         bool thrown{false};                      \
@@ -46,7 +46,7 @@
 
 namespace {
 
-using namespace jpeg;   // acceptable dans un fichier de test, jamais dans un en-tête
+using namespace jpeg;   // acceptable in a test file, never in a header
 
 Image random_image(std::size_t width, std::size_t height)
 {
@@ -94,7 +94,7 @@ void test_dct_round_trip()
 
 void test_constant_block_has_only_dc_coefficient()
 {
-    // Un bloc constant v ne varie pas : seul D_{0,0} = 8 v est non nul.
+    // A constant block v does not vary: only D_{0,0} = 8 v is non-zero.
     const Dct dct{};
     const Matrix8 coefficients{dct.forward(Matrix8{10.0})};
     for (std::size_t k{0}; k < block_size; ++k) {
@@ -111,7 +111,7 @@ void test_image_is_cropped_to_multiple_of_8()
     const Image cropped{image.cropped_to_blocks()};
     assert(cropped.width() == 16);
     assert(cropped.height() == 16);
-    assert(image.width() == 19);   // l'original n'est pas modifié
+    assert(image.width() == 19);   // the original is not modified
 }
 
 void test_image_invariant()
@@ -125,7 +125,7 @@ void test_image_invariant()
     ASSERT_THROWS((image.at(8, 0, 0)), std::out_of_range);
     ASSERT_THROWS((image.at(0, 0, 3)), std::out_of_range);
 
-    // Limite de taille : au-delà, les calculs de taille de stb pourraient déborder.
+    // Size limit: beyond it, the size computations of stb could overflow.
     const Image widest{Image::max_dimension, 1};
     assert(widest.width() == Image::max_dimension);
     ASSERT_THROWS((Image{Image::max_dimension + 1, 1}), std::invalid_argument);
@@ -153,8 +153,8 @@ void test_frequency_masks()
 {
     const SquareMask square{6};
     const TriangleMask triangle{6};
-    // Utilisation par référence sur l'interface : l'appel virtuel exécute la
-    // version de la classe réelle.
+    // Use through a reference to the interface: the virtual call runs the
+    // version of the actual class.
     const FrequencyMask& as_square{square};
     const FrequencyMask& as_triangle{triangle};
 
@@ -172,7 +172,7 @@ void test_frequency_masks()
 
 void test_sparse_matrix_from_dense()
 {
-    // Exemple du commentaire de sparse_matrix.hpp.
+    // Example from the comment in sparse_matrix.hpp.
     const std::vector<std::int16_t> dense{5, 0, 0,
                                           0, 0, 0,
                                           0, 3, 7};
@@ -194,11 +194,11 @@ void test_sparse_matrix_invariant()
     const SparseMatrix valid{2, 2, {1, 2}, {0, 1}, {0, 2, 2}};
     assert(valid.at(0, 1) == 2);
 
-    ASSERT_THROWS((SparseMatrix{2, 2, {1, 2}, {0, 1}, {0, 3, 2}}), std::invalid_argument);  // pointeurs décroissants
-    ASSERT_THROWS((SparseMatrix{2, 2, {1, 2}, {1, 0}, {0, 2, 2}}), std::invalid_argument);  // colonnes non croissantes
-    ASSERT_THROWS((SparseMatrix{2, 2, {1, 2}, {0, 2}, {0, 2, 2}}), std::invalid_argument);  // colonne hors matrice
-    ASSERT_THROWS((SparseMatrix{2, 2, {1, 0}, {0, 1}, {0, 2, 2}}), std::invalid_argument);  // zéro stocké
-    ASSERT_THROWS((SparseMatrix{2, 2, std::vector<std::int16_t>(3, 0)}), std::invalid_argument);  // taille dense
+    ASSERT_THROWS((SparseMatrix{2, 2, {1, 2}, {0, 1}, {0, 3, 2}}), std::invalid_argument);  // decreasing pointers
+    ASSERT_THROWS((SparseMatrix{2, 2, {1, 2}, {1, 0}, {0, 2, 2}}), std::invalid_argument);  // columns not increasing
+    ASSERT_THROWS((SparseMatrix{2, 2, {1, 2}, {0, 2}, {0, 2, 2}}), std::invalid_argument);  // column outside the matrix
+    ASSERT_THROWS((SparseMatrix{2, 2, {1, 0}, {0, 1}, {0, 2, 2}}), std::invalid_argument);  // stored zero
+    ASSERT_THROWS((SparseMatrix{2, 2, std::vector<std::int16_t>(3, 0)}), std::invalid_argument);  // dense size
 }
 
 void test_compression_removes_high_frequencies()
@@ -256,7 +256,7 @@ void test_pipeline_on_uniform_image()
     const Image image{16, 16, 0.5 * 255.0};
     const Image result{decompress(compress(image, QuantizationTable::standard(), 2, SquareMask{6}))};
 
-    // Test Python : mse < 0.01 pour des intensités dans [0, 1], soit 0.01 * 255^2 ici.
+    // Python test: mse < 0.01 for intensities in [0, 1], i.e. 0.01 * 255^2 here.
     const double mse{255.0 * 255.0 / std::pow(10.0, psnr(image, result) / 10.0)};
     assert(mse < 0.01 * 255.0 * 255.0);
     assert(relative_l2_error(image, result) < 0.01);
@@ -285,9 +285,9 @@ void test_csr_file_round_trip()
     }
     assert(relative_l2_error(decompress(compressed), decompress(loaded)) == 0.0);
 
-    ASSERT_THROWS((load_compressed("fichier_absent.csr")), std::runtime_error);
+    ASSERT_THROWS((load_compressed("missing_file.csr")), std::runtime_error);
 
-    // Un fichier qui annonce une image trop grande est rejeté avant toute allocation.
+    // A file announcing an oversized image is rejected before any allocation.
     const std::string oversized_path{"test_oversized.csr"};
     {
         std::ofstream out{oversized_path, std::ios::binary};
@@ -347,11 +347,11 @@ void test_parse_options()
 
     const char* const custom[]{"jpeg_csr", "compress", "photo.png", "--alpha", "5",
                                "--mask", "triangle", "--cutoff", "10", "--table", "uniform",
-                               "--noise", "0.05", "--threshold", "0", "--out", "sortie"};
+                               "--noise", "0.05", "--threshold", "0", "--out", "output"};
     const Options tuned{parse_options(17, custom)};
     assert(tuned.alpha == 5.0 && tuned.mask == MaskKind::triangle && tuned.cutoff == 10);
     assert(tuned.table == TableKind::uniform && tuned.noise == 0.05 && tuned.threshold == 0);
-    assert(tuned.output == "sortie");
+    assert(tuned.output == "output");
 
     const char* const decompress_args[]{"jpeg_csr", "decompress", "a.csr", "a.png"};
     const Options back{parse_options(4, decompress_args)};
@@ -361,7 +361,7 @@ void test_parse_options()
     ASSERT_THROWS((parse_options(5, bad_number)), std::invalid_argument);
     const char* const missing_value[]{"jpeg_csr", "compress", "photo.png", "--alpha"};
     ASSERT_THROWS((parse_options(4, missing_value)), std::invalid_argument);
-    const char* const unknown[]{"jpeg_csr", "compresser"};
+    const char* const unknown[]{"jpeg_csr", "compact"};
     ASSERT_THROWS((parse_options(2, unknown)), std::invalid_argument);
 
     const char* const help[]{"jpeg_csr"};
@@ -389,6 +389,6 @@ int main()
     test_metrics();
     test_salt_and_pepper();
     test_parse_options();
-    std::cout << "Tous les tests passent (17 fonctions de test).\n";
+    std::cout << "All tests passed (17 test functions).\n";
     return EXIT_SUCCESS;
 }

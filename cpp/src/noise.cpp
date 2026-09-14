@@ -8,7 +8,7 @@ namespace jpeg {
 void add_salt_and_pepper(Image& image, double probability, unsigned seed)
 {
     if (!(probability >= 0.0 && probability <= 1.0)) {
-        throw std::invalid_argument{"la probabilité de bruit doit être dans [0, 1]"};
+        throw std::invalid_argument{"the noise probability must be in [0, 1]"};
     }
 
     std::mt19937 generator{seed};

@@ -5,29 +5,29 @@
 
 namespace jpeg {
 
-// Matrice de quantification Q : chaque coefficient DCT D_{k,l} est divisé par
-// Q_{k,l} puis tronqué vers zéro. Plus Q_{k,l} est grand, plus le coefficient
-// a de chances d'être annulé.
+// Quantization matrix Q: each DCT coefficient D_{k,l} is divided by Q_{k,l},
+// then truncated toward zero. The larger Q_{k,l}, the more likely the
+// coefficient is zeroed.
 //
-// Invariant : tous les diviseurs sont >= 1.
-//  - un diviseur nul ou négatif n'a pas de sens pour une quantification ;
-//  - comme |D_{k,l}| <= 8 * 128 = 1024, un diviseur >= 1 garantit que chaque
-//    coefficient quantifié tient dans un std::int16_t, le type stocké dans le
-//    CSR (comme .astype(np.int16) en Python).
-// Le constructeur vérifie l'invariant et aucune méthode ne modifie la table.
+// Invariant: all divisors are >= 1.
+//  - a zero or negative divisor makes no sense for a quantization;
+//  - since |D_{k,l}| <= 8 * 128 = 1024, a divisor >= 1 guarantees that each
+//    quantized coefficient fits in a std::int16_t, the type stored in the CSR
+//    matrix (like .astype(np.int16) in Python).
+// The constructor checks the invariant and no method modifies the table.
 class QuantizationTable {
 public:
-    // Lance std::invalid_argument si un diviseur est < 1.
+    // Throws std::invalid_argument if a divisor is < 1.
     explicit QuantizationTable(const Matrix8& divisors);
 
-    // Tables étudiées dans le projet MAM3.
-    static QuantizationTable standard();            // norme JPEG, dite psychovisuelle
-    static QuantizationTable uniform(double value); // même diviseur partout
-    static QuantizationTable low_frequencies();     // diviseurs faibles en haut à gauche
-    static QuantizationTable high_frequencies();    // diviseurs faibles en bas à droite
+    // Tables studied in the MAM3 project.
+    static QuantizationTable standard();            // JPEG standard, known as psychovisual
+    static QuantizationTable uniform(double value); // same divisor everywhere
+    static QuantizationTable low_frequencies();     // small divisors at the top left
+    static QuantizationTable high_frequencies();    // small divisors at the bottom right
 
-    // Facteur de qualité alpha du rapport : renvoie la table alpha * Q.
-    // Lance std::invalid_argument si alpha <= 0 ou si alpha * Q casse l'invariant.
+    // Quality factor alpha of the report: returns the table alpha * Q.
+    // Throws std::invalid_argument if alpha <= 0 or if alpha * Q breaks the invariant.
     QuantizationTable scaled(double alpha) const;
 
     double operator()(std::size_t k, std::size_t l) const;

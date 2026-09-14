@@ -6,29 +6,29 @@
 
 namespace jpeg {
 
-// Interface abstraite : indique si le coefficient fréquentiel (k, l) d'un bloc
-// est conservé. Les coefficients rejetés sont mis à zéro après quantification,
-// ce qui filtre les hautes fréquences (et une partie du bruit).
+// Abstract interface: tells whether the frequency coefficient (k, l) of a block
+// is kept. Rejected coefficients are set to zero after quantization, which
+// filters out the high frequencies (and part of the noise).
 //
-// La compression ne connaît que cette interface : elle reçoit un
-// const FrequencyMask& et appelle keeps() sans savoir quelle stratégie se
-// trouve derrière (même principe que ScalarFunction et midpoint au TD6).
-// Ajouter une nouvelle forme de masque ne modifie donc pas la compression.
+// The compression only knows this interface: it receives a
+// const FrequencyMask& and calls keeps() without knowing which strategy is
+// behind it (same idea as ScalarFunction and midpoint in lab 6 of the course).
+// Adding a new mask shape therefore does not change the compression.
 class FrequencyMask {
 public:
     virtual bool keeps(std::size_t k, std::size_t l) const = 0;
     virtual std::string name() const = 0;
 
-    // Destructeur virtuel : détruire un objet dérivé via la base reste correct.
+    // Virtual destructor: destroying a derived object through the base stays correct.
     virtual ~FrequencyMask() = default;
 };
 
-// Troncature carrée de la version Python : D[F:, :] = 0 et D[:, F:] = 0.
-// On garde les coefficients tels que k < F et l < F.
-// Invariant : 1 <= F <= 8 (F = 8 ne supprime rien).
+// Square truncation of the Python version: D[F:, :] = 0 and D[:, F:] = 0.
+// Keeps the coefficients with k < F and l < F.
+// Invariant: 1 <= F <= 8 (F = 8 removes nothing).
 class SquareMask : public FrequencyMask {
 public:
-    explicit SquareMask(std::size_t cutoff);   // lance std::invalid_argument
+    explicit SquareMask(std::size_t cutoff);   // throws std::invalid_argument
 
     bool keeps(std::size_t k, std::size_t l) const override;
     std::string name() const override;
@@ -37,12 +37,12 @@ private:
     std::size_t cutoff_;
 };
 
-// Troncature triangulaire du sujet MAM3 : on annule les coefficients tels que
-// k + l >= F, F étant la fréquence de coupure.
-// Invariant : 1 <= F <= 15 (k + l vaut au plus 14, donc F = 15 ne supprime rien).
+// Triangular truncation of the MAM3 assignment: zeroes the coefficients with
+// k + l >= F, F being the cutoff frequency.
+// Invariant: 1 <= F <= 15 (k + l is at most 14, so F = 15 removes nothing).
 class TriangleMask : public FrequencyMask {
 public:
-    explicit TriangleMask(std::size_t cutoff);   // lance std::invalid_argument
+    explicit TriangleMask(std::size_t cutoff);   // throws std::invalid_argument
 
     bool keeps(std::size_t k, std::size_t l) const override;
     std::string name() const override;

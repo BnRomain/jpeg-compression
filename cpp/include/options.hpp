@@ -11,26 +11,26 @@ enum class Command { help, compress, decompress };
 enum class TableKind { standard, uniform, low_frequencies, high_frequencies };
 enum class MaskKind { square, triangle };
 
-// Réglages lus sur la ligne de commande. Les valeurs par défaut reproduisent
-// l'application Python : Q standard, alpha = 1, seuil = 2, troncature carrée F = 6.
+// Settings read from the command line. The defaults reproduce the Python app:
+// standard Q, alpha = 1, threshold = 2, square truncation F = 6.
 //
-// Simple agrégat de paramètres, volontairement laissé en struct : la validité
-// des valeurs (alpha > 0, F dans le bon intervalle, bruit dans [0, 1]...) est
-// vérifiée par les classes qui les utilisent, dans leurs constructeurs.
+// A plain aggregate of parameters, deliberately left as a struct: the validity
+// of the values (alpha > 0, F in the right range, noise in [0, 1]...) is
+// checked by the classes that use them, in their constructors.
 struct Options {
     Command command{Command::help};
     std::string input;
-    std::string output{"resultats"};   // dossier (compress) ou fichier PNG (decompress)
+    std::string output{"results"};     // directory (compress) or PNG file (decompress)
     TableKind table{TableKind::standard};
     double alpha{1.0};
     int threshold{2};
     MaskKind mask{MaskKind::square};
     std::size_t cutoff{6};
-    double noise{0.0};                 // probabilité du bruit poivre et sel
+    double noise{0.0};                 // probability of the salt-and-pepper noise
 };
 
-// Analyse les arguments du programme.
-// Lance std::invalid_argument si la commande est mal formée.
+// Parses the program arguments.
+// Throws std::invalid_argument if the command is malformed.
 Options parse_options(int argc, const char* const argv[]);
 
 void print_usage(std::ostream& out);
