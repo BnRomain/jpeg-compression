@@ -23,6 +23,7 @@
 #include <cstdint>
 #include <cstdlib>
 #include <filesystem>
+#include <fstream>
 #include <iostream>
 #include <random>
 #include <stdexcept>
@@ -123,6 +124,11 @@ void test_image_invariant()
     assert(image(7, 7, 2) == 3.0);
     ASSERT_THROWS((image.at(8, 0, 0)), std::out_of_range);
     ASSERT_THROWS((image.at(0, 0, 3)), std::out_of_range);
+
+    // Limite de taille : au-delà, les calculs de taille de stb pourraient déborder.
+    const Image widest{Image::max_dimension, 1};
+    assert(widest.width() == Image::max_dimension);
+    ASSERT_THROWS((Image{Image::max_dimension + 1, 1}), std::invalid_argument);
 }
 
 void test_quantization_tables()
@@ -280,6 +286,23 @@ void test_csr_file_round_trip()
     assert(relative_l2_error(decompress(compressed), decompress(loaded)) == 0.0);
 
     ASSERT_THROWS((load_compressed("fichier_absent.csr")), std::runtime_error);
+
+    // Un fichier qui annonce une image trop grande est rejeté avant toute allocation.
+    const std::string oversized_path{"test_oversized.csr"};
+    {
+        std::ofstream out{oversized_path, std::ios::binary};
+        const std::uint32_t width{static_cast<std::uint32_t>(Image::max_dimension + block_size)};
+        const std::uint32_t height{static_cast<std::uint32_t>(block_size)};
+        const double divisor{1.0};
+        out.write("JCSR", 4);
+        out.write(reinterpret_cast<const char*>(&width), sizeof width);
+        out.write(reinterpret_cast<const char*>(&height), sizeof height);
+        for (std::size_t i{0}; i < block_size * block_size; ++i) {
+            out.write(reinterpret_cast<const char*>(&divisor), sizeof divisor);
+        }
+    }
+    ASSERT_THROWS((load_compressed(oversized_path)), std::invalid_argument);
+    std::filesystem::remove(oversized_path);
 }
 
 void test_metrics()

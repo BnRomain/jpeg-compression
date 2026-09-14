@@ -1,8 +1,10 @@
+# Python
 __pycache__/
 *.py[cod]
 .pytest_cache/
 .venv/
 venv/
+.streamlit/secrets.toml
 
 # C++
 cpp/build/
@@ -11,3 +13,23 @@ cpp/jpeg_csr.exe
 cpp/run_tests
 cpp/run_tests.exe
 cpp/resultats/
+*.o
+
+# LaTeX (fichiers intermédiaires)
+*.aux
+*.fdb_latexmk
+*.fls
+*.log
+*.nav
+*.out
+*.snm
+*.synctex.gz
+*.toc
+*.vrb
+
+# Système et éditeurs
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/

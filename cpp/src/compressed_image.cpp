@@ -17,8 +17,10 @@ CompressedImage::CompressedImage(std::size_t width, std::size_t height,
       table_{table},
       channels_{std::move(channels)}
 {
-    if (width_ == 0 || height_ == 0 || width_ % block_size != 0 || height_ % block_size != 0) {
-        throw std::invalid_argument{"les dimensions compressées doivent être des multiples non nuls de 8"};
+    if (width_ == 0 || height_ == 0 || width_ % block_size != 0 || height_ % block_size != 0
+        || width_ > Image::max_dimension || height_ > Image::max_dimension) {
+        throw std::invalid_argument{"les dimensions compressées doivent être des multiples non nuls de 8, "
+                                    "d'au plus " + std::to_string(Image::max_dimension) + " pixels"};
     }
     if (channels_.size() != Image::channels) {
         throw std::invalid_argument{"une image compressée contient exactement 3 canaux"};
@@ -192,10 +194,9 @@ CompressedImage load_compressed(const std::string& path)
     }
     check_stream(in, path);
 
-    // Borne raisonnable avant toute allocation : un fichier corrompu ne doit
-    // pas provoquer la réservation de plusieurs gigaoctets.
-    const std::uint32_t max_dimension{1U << 16};
-    if (width > max_dimension || height > max_dimension) {
+    // Vérification avant toute allocation : un fichier corrompu ne doit pas
+    // provoquer la réservation de plusieurs gigaoctets.
+    if (width > Image::max_dimension || height > Image::max_dimension) {
         throw std::invalid_argument{"dimensions invalides dans '" + path + "'"};
     }
     const std::size_t coefficient_count{static_cast<std::size_t>(width) * height};

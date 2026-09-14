@@ -3,6 +3,7 @@
 #include "matrix8.hpp"
 
 #include <stdexcept>
+#include <string>
 
 namespace jpeg {
 
@@ -10,8 +11,9 @@ namespace {
 
 std::size_t checked_dimension(std::size_t dimension)
 {
-    if (dimension == 0) {
-        throw std::invalid_argument{"une image doit avoir des dimensions non nulles"};
+    if (dimension == 0 || dimension > Image::max_dimension) {
+        throw std::invalid_argument{"une dimension d'image doit être comprise entre 1 et "
+                                    + std::to_string(Image::max_dimension)};
     }
     return dimension;
 }

@@ -11,7 +11,8 @@ namespace jpeg {
 // Toute la dépendance à la bibliothèque stb est confinée dans image_io.cpp :
 // le reste du programme ne manipule que la classe Image.
 
-// Lit une image PNG, JPEG, BMP... Une image en niveaux de gris est convertie
+// Lit une image PNG, JPEG ou BMP (seuls formats compilés, au plus
+// Image::max_dimension pixels de côté). Une image en niveaux de gris est convertie
 // en RGB et un éventuel canal alpha (transparence) est ignoré, comme dans le
 // prétraitement de la version Python.
 // Lance std::runtime_error si le fichier est illisible.

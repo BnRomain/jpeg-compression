@@ -4,6 +4,14 @@
 // le fichier qui définit la macro *_IMPLEMENTATION, ici et nulle part ailleurs.
 // Le dossier third_party est passé à g++ avec -isystem pour ne pas afficher
 // les avertissements internes à stb.
+//
+// Sécurité : seuls les décodeurs utiles (PNG, JPEG, BMP) sont compilés, ce qui
+// réduit la surface d'attaque face à un fichier malveillant, et stb refuse les
+// images de plus de Image::max_dimension pixels de côté.
+#define STBI_ONLY_PNG
+#define STBI_ONLY_JPEG
+#define STBI_ONLY_BMP
+#define STBI_MAX_DIMENSIONS 16384
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 #define STB_IMAGE_WRITE_IMPLEMENTATION
@@ -13,6 +21,9 @@
 #include <cmath>
 #include <stdexcept>
 #include <vector>
+
+// La limite de stb et l'invariant de Image doivent rester identiques.
+static_assert(STBI_MAX_DIMENSIONS == jpeg::Image::max_dimension);
 
 namespace jpeg {
 
