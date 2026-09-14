@@ -110,8 +110,20 @@ cpp/
   rapide (50 ms contre 543 ms pour compression et décompression).
 - `python scripts/make_figures.py` régénère les figures de `docs/figures`.
 
+## Sécurité
+
+- Seuls les décodeurs PNG, JPEG et BMP de stb sont compilés et les images sont
+  limitées à 16384 pixels par côté (`Image::max_dimension`) : les calculs de taille
+  de stb, faits avec des `int`, ne peuvent pas déborder.
+- Les copies de stb calculent les tailles de tampons en `size_t` (alertes CodeQL
+  `cpp/integer-multiplication-cast-to-long`) : détail des modifications dans
+  [`third_party/README.md`](third_party/README.md).
+- Un fichier `.csr` est entièrement revérifié à la lecture (dimensions, invariant
+  CSR, matrice Q) avant toute décompression.
+
 ## Crédits
 
-- [stb](https://github.com/nothings/stb) de Sean Barrett, domaine public.
+- [stb](https://github.com/nothings/stb) de Sean Barrett, domaine public (copie
+  modifiée, voir [`third_party/README.md`](third_party/README.md)).
 - Images de test issues de [scikit-image](https://scikit-image.org/) :
   `astronaut.png` (NASA, domaine public) et `coffee.png` (Rachel Michetti, CC0).

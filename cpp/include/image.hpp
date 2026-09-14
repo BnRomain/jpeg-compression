@@ -13,7 +13,8 @@ namespace jpeg {
 // [0, 255] rangés ligne par ligne dans un unique std::vector :
 //   indice = (row * width + col) * 3 + channel
 //
-// Invariant : width > 0, height > 0 et pixels_.size() == width * height * 3.
+// Invariant : 0 < width, height <= max_dimension et
+// pixels_.size() == width * height * 3.
 // Le constructeur l'établit, la représentation est privée et aucune méthode
 // ne change la taille : le code extérieur ne peut pas casser l'invariant.
 //
@@ -23,7 +24,12 @@ class Image {
 public:
     static constexpr std::size_t channels{3};
 
-    // Lance std::invalid_argument si une dimension est nulle.
+    // Plus grande largeur ou hauteur acceptée. stb calcule certaines tailles de
+    // tampons avec des produits d'int : avec au plus 16384 pixels par côté,
+    // (16384 * 3 + 1) * 16384 < 2^31 et ces calculs ne peuvent pas déborder.
+    static constexpr std::size_t max_dimension{16384};
+
+    // Lance std::invalid_argument si une dimension est nulle ou dépasse max_dimension.
     Image(std::size_t width, std::size_t height, double value = 0.0);
 
     std::size_t width() const noexcept;
