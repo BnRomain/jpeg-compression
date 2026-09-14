@@ -60,8 +60,8 @@ representative at an online or offline event.
 
 Instances of abusive, harassing, or otherwise unacceptable behavior may be
 reported to the community leaders responsible for enforcement by contacting the
-project maintainer, Romain Ben ([@BnRomain](https://github.com/BnRomain)),
-through the contact details of their GitHub profile.
+project maintainer, Romain Ben, at
+[romainben31@gmail.com](mailto:romainben31@gmail.com).
 All complaints will be reviewed and investigated promptly and fairly.
 
 All community leaders are obligated to respect the privacy and security of the

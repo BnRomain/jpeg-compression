@@ -41,7 +41,7 @@ def read(path):
 
 
 def zoom(image):
-    region = image[TOP:TOP + SIZE, LEFT:LEFT + SIZE]
+    region = image[TOP : TOP + SIZE, LEFT : LEFT + SIZE]
     return cv2.resize(region, None, fx=ZOOM, fy=ZOOM, interpolation=cv2.INTER_NEAREST)
 
 
@@ -62,13 +62,17 @@ def save_strip(images, name):
 def main():
     FIGURES_DIR.mkdir(parents=True, exist_ok=True)
     for name, options in RUNS.items():
-        subprocess.run([str(EXECUTABLE), "compress", str(IMAGE), "--out", str(RUNS_DIR / name), *options],
-                       check=True, capture_output=True)
+        subprocess.run(
+            [str(EXECUTABLE), "compress", str(IMAGE), "--out", str(RUNS_DIR / name), *options],
+            check=True,
+            capture_output=True,
+        )
 
     original = zoom(read(IMAGE))
     save_strip([original, reconstructed("alpha1"), reconstructed("alpha5"), reconstructed("alpha20")], "alpha.png")
-    save_strip([reconstructed("alpha1"), reconstructed("uniform"), reconstructed("low"),
-                reconstructed("high")], "tables.png")
+    save_strip(
+        [reconstructed("alpha1"), reconstructed("uniform"), reconstructed("low"), reconstructed("high")], "tables.png"
+    )
     noisy = zoom(read(RUNS_DIR / "noise" / "astronaut_noisy.png"))
     save_strip([original, noisy, reconstructed("noise")], "noise.png")
     print("Figures written to", FIGURES_DIR)

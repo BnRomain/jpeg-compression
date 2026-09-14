@@ -3,6 +3,7 @@
 [![Python tests](https://github.com/BnRomain/jpeg-compression/actions/workflows/tests.yml/badge.svg)](https://github.com/BnRomain/jpeg-compression/actions/workflows/tests.yml)
 [![C++ tests](https://github.com/BnRomain/jpeg-compression/actions/workflows/cpp-tests.yml/badge.svg)](https://github.com/BnRomain/jpeg-compression/actions/workflows/cpp-tests.yml)
 [![CodeQL](https://github.com/BnRomain/jpeg-compression/actions/workflows/github-code-scanning/codeql/badge.svg)](https://github.com/BnRomain/jpeg-compression/actions/workflows/github-code-scanning/codeql)
+[![Release](https://img.shields.io/github/v/release/BnRomain/jpeg-compression?sort=semver)](https://github.com/BnRomain/jpeg-compression/releases)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 ![Python 3.12](https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white)
 ![C++20](https://img.shields.io/badge/C%2B%2B-20-00599C?logo=cplusplus&logoColor=white)
@@ -84,6 +85,7 @@ jpeg-compression/
 │   ├── jpeg_compression.py   compression and decompression
 │   ├── requirements.txt      dependencies (pinned versions)
 │   ├── requirements-dev.txt  test and lint dependencies
+│   ├── pyproject.toml        pytest and coverage configuration
 │   ├── tests/                pytest tests
 │   └── docs/                 report and slides (French)
 ├── cpp/                      C++ version (MAM4)
@@ -104,12 +106,14 @@ jpeg-compression/
 ## ✅ Tests and Quality
 
 On every pull request and every push to `main`, GitHub Actions runs:
-* **Python tests**: Ruff lint, then `pytest` on the compression functions and on the app startup;
-* **C++ tests**: `make test` under AddressSanitizer and UBSan, then `make demo`;
+* **Python tests**: Ruff lint and format check, then `pytest` with a coverage report on the compression functions and the app;
+* **C++ tests**: `make test` under AddressSanitizer and UBSan, `make demo`, then the line coverage of the tests and the demo with gcovr;
 * **Dependency review**: blocks a pull request that adds a vulnerable dependency;
 * **CodeQL**: security analysis of the Python code, the C++ code and the workflows.
 
-The `main` branch is protected: every change goes through a pull request and can only be merged once these checks pass.
+The `main` branch is protected: every change goes through a pull request and can only be merged once these checks pass. Coverage reports are published in the summary of each workflow run, and secret scanning with push protection blocks any committed credential.
+
+Versions follow [Semantic Versioning](https://semver.org/) and are published as [GitHub releases](https://github.com/BnRomain/jpeg-compression/releases): see the [contributing guide](CONTRIBUTING.md#versioning-and-releases).
 
 **Dependabot** monitors the Python dependencies and the GitHub Actions. Patch and minor updates are merged automatically once the required checks of `main` have passed. See also the [security policy](SECURITY.md) and the [wiki](https://github.com/BnRomain/jpeg-compression/wiki).
 

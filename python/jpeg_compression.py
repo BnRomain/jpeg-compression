@@ -1,16 +1,18 @@
 import numpy as np
 
 # Standard JPEG quantization matrix
-Q = np.array([
-    [16, 11, 10, 16, 24, 40, 51, 61],
-    [12, 12, 13, 19, 26, 58, 60, 55],
-    [14, 13, 16, 24, 40, 57, 69, 56],
-    [14, 17, 22, 29, 51, 87, 80, 62],
-    [18, 22, 37, 56, 68, 109, 103, 77],
-    [24, 35, 55, 64, 81, 104, 113, 92],
-    [49, 64, 78, 87, 103, 121, 120, 101],
-    [72, 92, 95, 98, 112, 100, 103, 99]
-])
+Q = np.array(
+    [
+        [16, 11, 10, 16, 24, 40, 51, 61],
+        [12, 12, 13, 19, 26, 58, 60, 55],
+        [14, 13, 16, 24, 40, 57, 69, 56],
+        [14, 17, 22, 29, 51, 87, 80, 62],
+        [18, 22, 37, 56, 68, 109, 103, 77],
+        [24, 35, 55, 64, 81, 104, 113, 92],
+        [49, 64, 78, 87, 103, 121, 120, 101],
+        [72, 92, 95, 98, 112, 100, 103, 99],
+    ]
+)
 
 
 def init(img):
@@ -31,7 +33,7 @@ def DCT2_P():
     for i in range(8):
         C = 1 / np.sqrt(2) if i == 0 else 1
         for j in range(8):
-            P[i, j] = (1/2) * C * np.cos(((2*j + 1) * i * np.pi) / 16)
+            P[i, j] = (1 / 2) * C * np.cos(((2 * j + 1) * i * np.pi) / 16)
     return P
 
 
@@ -49,7 +51,7 @@ def compression(img_input, threshold=2):
     for channel in range(3):
         for i in range(x // 8):
             for j in range(y // 8):
-                img_8 = img[i*8:(i+1)*8, j*8:(j+1)*8, channel]
+                img_8 = img[i * 8 : (i + 1) * 8, j * 8 : (j + 1) * 8, channel]
                 D = D_matrix(img_8, P)
                 D = np.trunc(D / Q)
 
@@ -58,7 +60,7 @@ def compression(img_input, threshold=2):
                 D[6:, :] = 0
                 D[:, 6:] = 0
 
-                img_compressed[i*8:(i+1)*8, j*8:(j+1)*8, channel] = D
+                img_compressed[i * 8 : (i + 1) * 8, j * 8 : (j + 1) * 8, channel] = D
     return img_compressed
 
 
@@ -70,10 +72,10 @@ def decompression(img_compressed):
     for channel in range(3):
         for i in range(x // 8):
             for j in range(y // 8):
-                img_8 = img_compressed[i*8:(i+1)*8, j*8:(j+1)*8, channel]
+                img_8 = img_compressed[i * 8 : (i + 1) * 8, j * 8 : (j + 1) * 8, channel]
                 img_8 = img_8 * Q
                 img_8_uncompressed = np.transpose(P) @ img_8 @ P
-                img_uncompressed[i*8:(i+1)*8, j*8:(j+1)*8, channel] = img_8_uncompressed
+                img_uncompressed[i * 8 : (i + 1) * 8, j * 8 : (j + 1) * 8, channel] = img_8_uncompressed
 
     img_uncompressed = img_uncompressed + 128
     img_uncompressed = img_uncompressed / 255

@@ -3,6 +3,8 @@ __pycache__/
 *.py[cod]
 .pytest_cache/
 .ruff_cache/
+.coverage
+htmlcov/
 .venv/
 venv/
 .streamlit/secrets.toml
@@ -15,6 +17,8 @@ cpp/run_tests
 cpp/run_tests.exe
 cpp/results/
 *.o
+*.gcda
+*.gcno
 
 # LaTeX (intermediate files)
 *.aux

@@ -1,9 +1,10 @@
 version: 2
 
-# Tracked dependencies: Python packages (python/requirements*.txt, pinned
-# versions) and the GitHub Actions used by the workflows. The C++ code only
-# depends on stb, vendored in cpp/third_party: Dependabot cannot track it, see
-# cpp/third_party/README.md.
+# Tracked dependencies: Python packages (python/requirements*.txt), the gcovr
+# coverage tool of the C++ CI (cpp/requirements-ci.txt), all with pinned
+# versions, and the GitHub Actions used by the workflows. The C++ code itself
+# only depends on stb, vendored in cpp/third_party: Dependabot cannot track it,
+# see cpp/third_party/README.md.
 
 updates:
   - package-ecosystem: "pip"
@@ -18,6 +19,12 @@ updates:
           - "minor"
         patterns:
           - "*"
+
+  - package-ecosystem: "pip"
+    directory: "/cpp"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
 
   - package-ecosystem: "github-actions"
     directory: "/"

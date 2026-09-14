@@ -69,7 +69,7 @@ def test_compression_removes_high_frequencies():
     for channel in range(3):
         for i in range(0, 16, 8):
             for j in range(0, 16, 8):
-                block = result[i:i + 8, j:j + 8, channel]
+                block = result[i : i + 8, j : j + 8, channel]
 
                 # Frequencies >= 6 are explicitly removed
                 assert np.all(block[6:, :] == 0)
@@ -113,10 +113,7 @@ def test_csr_conversion():
 
     compressed = compression(img, threshold=2)
 
-    matrices = [
-        csr_matrix(compressed[:, :, channel].astype(np.int16))
-        for channel in range(3)
-    ]
+    matrices = [csr_matrix(compressed[:, :, channel].astype(np.int16)) for channel in range(3)]
 
     reconstructed = np.stack(
         [matrix.toarray() for matrix in matrices],

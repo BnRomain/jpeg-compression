@@ -21,6 +21,7 @@ make                    # builds ./jpeg_csr
 make test               # runs the unit tests
 make demo               # compresses images/astronaut.png with several settings
 make test SANITIZE=1    # tests under AddressSanitizer and UBSan (Linux, macOS)
+make test COVERAGE=1    # coverage build, report with gcovr --root . --filter src/
 ```
 
 Compiler flags from the course: `-std=c++20 -Wall -Wextra -pedantic`.
