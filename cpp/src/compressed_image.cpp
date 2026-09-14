@@ -19,15 +19,15 @@ CompressedImage::CompressedImage(std::size_t width, std::size_t height,
 {
     if (width_ == 0 || height_ == 0 || width_ % block_size != 0 || height_ % block_size != 0
         || width_ > Image::max_dimension || height_ > Image::max_dimension) {
-        throw std::invalid_argument{"les dimensions compressées doivent être des multiples non nuls de 8, "
-                                    "d'au plus " + std::to_string(Image::max_dimension) + " pixels"};
+        throw std::invalid_argument{"compressed dimensions must be non-zero multiples of 8, "
+                                    "at most " + std::to_string(Image::max_dimension) + " pixels"};
     }
     if (channels_.size() != Image::channels) {
-        throw std::invalid_argument{"une image compressée contient exactement 3 canaux"};
+        throw std::invalid_argument{"a compressed image has exactly 3 channels"};
     }
     for (const SparseMatrix& channel : channels_) {
         if (channel.rows() != height_ || channel.cols() != width_) {
-            throw std::invalid_argument{"un canal CSR n'a pas les dimensions de l'image"};
+            throw std::invalid_argument{"a CSR channel does not have the dimensions of the image"};
         }
     }
 }
@@ -84,9 +84,9 @@ namespace {
 
 const char signature[4]{'J', 'C', 'S', 'R'};
 
-// Écriture binaire : reinterpret_cast présente l'objet comme une suite
-// d'octets (char) qui sont écrits tels quels. Les surcharges de write et de
-// read sont choisies par le compilateur selon le type de l'argument.
+// Binary output: reinterpret_cast presents the object as a sequence of bytes
+// (char) that are written as is. The compiler picks the write and read
+// overloads from the type of the argument.
 void write(std::ostream& out, std::uint32_t value)
 {
     out.write(reinterpret_cast<const char*>(&value), sizeof value);
@@ -119,8 +119,8 @@ void read(std::istream& in, double& value)
     in.read(reinterpret_cast<char*>(&value), sizeof value);
 }
 
-// Les deux surcharges suivantes lisent values.size() éléments : le vecteur
-// doit avoir été dimensionné avant l'appel.
+// The next two overloads read values.size() elements: the vector must be
+// sized before the call.
 void read(std::istream& in, std::vector<std::int32_t>& values)
 {
     in.read(reinterpret_cast<char*>(values.data()),
@@ -136,7 +136,7 @@ void read(std::istream& in, std::vector<std::int16_t>& values)
 void check_stream(const std::ios& stream, const std::string& path)
 {
     if (!stream) {
-        throw std::runtime_error{"erreur de lecture ou d'écriture du fichier '" + path + "'"};
+        throw std::runtime_error{"error while reading or writing file '" + path + "'"};
     }
 }
 
@@ -144,11 +144,11 @@ void check_stream(const std::ios& stream, const std::string& path)
 
 void save_compressed(const CompressedImage& image, const std::string& path)
 {
-    // Le fichier est fermé par le destructeur de std::ofstream (RAII), même si
-    // une exception interrompt la fonction.
+    // The file is closed by the std::ofstream destructor (RAII), even if an
+    // exception interrupts the function.
     std::ofstream out{path, std::ios::binary};
     if (!out) {
-        throw std::runtime_error{"impossible de créer le fichier '" + path + "'"};
+        throw std::runtime_error{"cannot create file '" + path + "'"};
     }
 
     out.write(signature, sizeof signature);
@@ -173,13 +173,13 @@ CompressedImage load_compressed(const std::string& path)
 {
     std::ifstream in{path, std::ios::binary};
     if (!in) {
-        throw std::runtime_error{"impossible d'ouvrir le fichier '" + path + "'"};
+        throw std::runtime_error{"cannot open file '" + path + "'"};
     }
 
     char header[4]{};
     in.read(header, sizeof header);
     if (!in || !std::equal(header, header + sizeof header, signature)) {
-        throw std::runtime_error{"'" + path + "' n'est pas un fichier .csr"};
+        throw std::runtime_error{"'" + path + "' is not a .csr file"};
     }
 
     std::uint32_t width{};
@@ -194,10 +194,10 @@ CompressedImage load_compressed(const std::string& path)
     }
     check_stream(in, path);
 
-    // Vérification avant toute allocation : un fichier corrompu ne doit pas
-    // provoquer la réservation de plusieurs gigaoctets.
+    // Checked before any allocation: a corrupted file must not trigger the
+    // reservation of several gigabytes.
     if (width > Image::max_dimension || height > Image::max_dimension) {
-        throw std::invalid_argument{"dimensions invalides dans '" + path + "'"};
+        throw std::invalid_argument{"invalid dimensions in '" + path + "'"};
     }
     const std::size_t coefficient_count{static_cast<std::size_t>(width) * height};
 
@@ -207,7 +207,7 @@ CompressedImage load_compressed(const std::string& path)
         read(in, nnz);
         check_stream(in, path);
         if (nnz > coefficient_count) {
-            throw std::invalid_argument{"nombre de coefficients invalide dans '" + path + "'"};
+            throw std::invalid_argument{"invalid coefficient count in '" + path + "'"};
         }
 
         std::vector<std::int32_t> row_pointers(static_cast<std::size_t>(height) + 1);
@@ -218,12 +218,12 @@ CompressedImage load_compressed(const std::string& path)
         read(in, values);
         check_stream(in, path);
 
-        // Le constructeur de SparseMatrix vérifie l'invariant CSR ; les
-        // vecteurs sont déplacés, pas recopiés.
+        // The SparseMatrix constructor checks the CSR invariant; the vectors
+        // are moved, not copied.
         channels.emplace_back(height, width, std::move(values),
                               std::move(column_indices), std::move(row_pointers));
     }
-    // QuantizationTable et CompressedImage vérifient à leur tour leurs invariants.
+    // QuantizationTable and CompressedImage check their own invariants in turn.
     return CompressedImage{width, height, QuantizationTable{divisors}, std::move(channels)};
 }
 

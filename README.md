@@ -1,47 +1,57 @@
 # 📷 Image Compression via DCT & Sparse Matrices (CSR)
 
-Ce projet propose une implémentation personnalisée de la compression d'image inspirée de la norme **JPEG**, utilisant la **Transformée en Cosinus Discrète (DCT)** et une optimisation du stockage via le format **CSR (Compressed Sparse Row)**.
+[![Python tests](https://github.com/BnRomain/jpeg-compression/actions/workflows/tests.yml/badge.svg)](https://github.com/BnRomain/jpeg-compression/actions/workflows/tests.yml)
+[![C++ tests](https://github.com/BnRomain/jpeg-compression/actions/workflows/cpp-tests.yml/badge.svg)](https://github.com/BnRomain/jpeg-compression/actions/workflows/cpp-tests.yml)
+[![CodeQL](https://github.com/BnRomain/jpeg-compression/actions/workflows/github-code-scanning/codeql/badge.svg)](https://github.com/BnRomain/jpeg-compression/actions/workflows/github-code-scanning/codeql)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+![Python 3.12](https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white)
+![C++20](https://img.shields.io/badge/C%2B%2B-20-00599C?logo=cplusplus&logoColor=white)
+[![Open in Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://jpeg-csr-compression.streamlit.app/)
 
-L'application est interactive et développée avec **Streamlit**.
+This project is a custom implementation of image compression inspired by the **JPEG** standard, using the **Discrete Cosine Transform (DCT)** and storage optimization through the **CSR (Compressed Sparse Row)** format.
 
-Le projet existe désormais en deux versions :
+The application is interactive and built with **Streamlit**.
 
-| Version | Dossier | Contexte | Auteurs |
+The project now comes in two versions:
+
+| Version | Folder | Context | Authors |
 |---|---|---|---|
-| **Python** (application Streamlit) | [`python/`](python) | Projet MAM3, janvier 2026 | Romain Ben, Evrard Lecureur, Zouhair Saitout |
-| **C++20** (ligne de commande) | [`cpp/`](cpp) | Projet C++ MAM4, septembre 2026 | Romain Ben, Karim Zrig |
+| **Python** (Streamlit app) | [`python/`](python) | Applied mathematics project (MAM3), January 2026 | Romain Ben, Evrard Lecureur, Zouhair Saitout |
+| **C++20** (command line) | [`cpp/`](cpp) | C++ programming project (MAM4), September 2026 | Romain Ben, Karim Zrig |
 
-## 🚀 Aperçu du projet
-L'objectif est de démontrer comment la mise à zéro de fréquences spécifiques dans le domaine fréquentiel (DCT) permet de créer une matrice "creuse" (sparse), que l'on peut ensuite stocker de manière beaucoup plus compacte qu'une image brute.
+Both versions were developed at Polytech Nice Sophia (Université Côte d'Azur).
 
-
-
-## 🛠️ Fonctionnement Technique
-
-L'algorithme suit les étapes rigoureuses du traitement d'image :
-1. **Découpage en blocs** : L'image est traitée par blocs de $8 \times 8$ pixels sur les trois canaux **RGB**.
-2. **DCT-2** : Passage de l'espace spatial à l'espace fréquentiel via une matrice de passage $P$.
-3. **Quantification & Seuillage** : 
-   - Division par une matrice de quantification standard $Q$.
-   - Application d'un seuil réglable : les coefficients inférieurs au seuil sont mis à zéro.
-   - Suppression des hautes fréquences (tronquage de la matrice $D$).
-4. **Stockage Sparse** : Conversion des matrices denses en format **CSR** (Compressed Sparse Row) pour ne conserver que les valeurs non nulles.
-5. **Reconstruction** : Application de la DCT inverse ($P^T D P$) pour visualiser l'image reconstruite.
+## 🚀 Project Overview
+The goal is to show how zeroing specific frequencies in the frequency domain (DCT) creates a "sparse" matrix, which can then be stored far more compactly than a raw image.
 
 
 
-## 📊 Analyse de la Compression
-L'application affiche en temps réel des métriques pour comparer l'efficacité de l'algorithme :
-* **Données RAM** : Le poids de l'image "dépliée" en mémoire vive (pixel par pixel).
-* **Taille CSR** : La taille réelle occupée par les matrices compressées (données utiles + indices).
-* **Ratio de Gain** : Le facteur de réduction entre le volume brut et le stockage optimisé.
+## 🛠️ How It Works
 
-> **💡 Note technique :** La différence entre le fichier original (ex: PNG de 200 Ko) et la "Taille RAM" (ex: 50 Mo) est normale. L'original est déjà compressé par des codecs systèmes. Mon algorithme travaille sur les données brutes pour démontrer le gain mathématique du format CSR.
+The algorithm follows the classic image processing steps:
+1. **Block splitting**: the image is processed in $8 \times 8$ pixel blocks on the three **RGB** channels.
+2. **DCT-II**: conversion from the spatial domain to the frequency domain through a change-of-basis matrix $P$.
+3. **Quantization & thresholding**:
+   - division by a standard quantization matrix $Q$;
+   - an adjustable threshold: coefficients below the threshold are set to zero;
+   - removal of high frequencies (truncation of the matrix $D$).
+4. **Sparse storage**: the dense matrices are converted to the **CSR** (Compressed Sparse Row) format, which keeps only the non-zero values.
+5. **Reconstruction**: the inverse DCT ($P^T D P$) is applied to display the reconstructed image.
 
-## 🔗 Démo en ligne
-👉 [Compresser une image](https://jpeg-csr-compression.streamlit.app/)
 
-Pour lancer l'application en local :
+
+## 📊 Compression Analysis
+The app displays real-time metrics to compare the efficiency of the algorithm:
+* **RAM data**: the size of the "unfolded" image in memory (pixel by pixel).
+* **CSR size**: the actual size of the compressed matrices (useful data + indices).
+* **Compression ratio**: the reduction factor between the raw volume and the optimized storage.
+
+> **💡 Technical note:** the difference between the original file (e.g. a 200 KB PNG) and the "RAM data" (e.g. 50 MB) is expected. The original file is already compressed by system codecs. My algorithm works on the raw data to show the mathematical gain of the CSR format.
+
+## 🔗 Live Demo
+👉 [Compress an image](https://jpeg-csr-compression.streamlit.app/)
+
+To run the app locally:
 
 ```bash
 cd python
@@ -49,66 +59,85 @@ pip install -r requirements.txt
 streamlit run app.py
 ```
 
-## ⚙️ Version C++
+## ⚙️ C++ Version
 
-La version C++ reprend tout le fonctionnement de la version Python, sans numpy ni scipy : DCT, quantification avec un facteur de qualité $\alpha$, seuil, suppression des hautes fréquences, matrices CSR écrites à la main et fichier binaire `.csr` (équivalent du `.npz`). Elle ajoute en options les analyses du rapport : matrices de quantification alternatives, troncature triangulaire du sujet, bruit poivre et sel.
+The C++ version reproduces everything the Python version does, without NumPy or SciPy: DCT, quantization with a quality factor $\alpha$, threshold, high-frequency removal, hand-written CSR matrices and a binary `.csr` file (the equivalent of the `.npz` file). It also adds the analyses of the report as options: alternative quantization matrices, the triangular truncation of the assignment and salt-and-pepper noise.
 
 ```bash
 cd cpp
-make test                                            # tests unitaires
-make                                                 # construit ./jpeg_csr
-./jpeg_csr compress images/astronaut.png --alpha 5   # compression + métriques
-./jpeg_csr decompress resultats/astronaut.csr relue.png
+make test                                            # unit tests
+make                                                 # builds ./jpeg_csr
+./jpeg_csr compress images/astronaut.png --alpha 5   # compression + metrics
+./jpeg_csr decompress results/astronaut.csr decoded.png
 ```
 
-Sous Windows avec MSYS2, utiliser `mingw32-make` à la place de `make`.
+On Windows with MSYS2, use `mingw32-make` instead of `make`.
 
-Sur une image $512 \times 512$, les deux versions produisent les mêmes coefficients (25 écarts d'arrondi flottant sur 786 432) et la version C++ est environ **11 fois plus rapide**. Architecture, options et résultats : [`cpp/README.md`](cpp/README.md).
+On a $512 \times 512$ image, both versions produce the same coefficients (25 floating-point rounding differences out of 786,432) and the C++ version is about **11 times faster**. Architecture, options and results: [`cpp/README.md`](cpp/README.md).
 
-## 🗂️ Structure du dépôt
+## 🗂️ Repository Structure
 
 ```text
 jpeg-compression/
-├── python/                   version Python (MAM3)
-│   ├── app.py                application Streamlit
-│   ├── jpeg_compression.py   compression et décompression
-│   ├── requirements.txt      dépendances (versions figées)
-│   ├── requirements-dev.txt  dépendances de test
-│   ├── tests/                tests pytest
-│   └── docs/                 rapport et présentation
-├── cpp/                      version C++ (MAM4)
-│   ├── include/  src/        code source
-│   ├── tests/                tests unitaires
-│   ├── third_party/          stb_image et stb_image_write
-│   ├── scripts/              comparaison avec Python, figures
-│   └── docs/                 rapport de synthèse et présentation
-├── .github/                  workflows GitHub Actions et Dependabot
-└── SECURITY.md               politique de sécurité
+├── python/                   Python version (MAM3)
+│   ├── app.py                Streamlit app
+│   ├── jpeg_compression.py   compression and decompression
+│   ├── requirements.txt      dependencies (pinned versions)
+│   ├── requirements-dev.txt  test and lint dependencies
+│   ├── tests/                pytest tests
+│   └── docs/                 report and slides (French)
+├── cpp/                      C++ version (MAM4)
+│   ├── include/  src/        source code
+│   ├── tests/                unit tests
+│   ├── third_party/          stb_image and stb_image_write
+│   ├── scripts/              comparison with Python, figures
+│   └── docs/                 summary report and slides (French)
+├── .github/                  workflows, issue and pull request templates, Dependabot
+├── CITATION.cff              citation metadata
+├── CODE_OF_CONDUCT.md        code of conduct
+├── CONTRIBUTING.md           contributing guide
+├── LICENSE                   MIT License
+├── SECURITY.md               security policy
+└── ruff.toml                 Python lint configuration
 ```
 
-## ✅ Tests et qualité
+## ✅ Tests and Quality
 
-À chaque Pull Request et à chaque push sur `main`, GitHub Actions lance :
-* **Python tests** : `pytest` sur les fonctions de compression et sur le démarrage de l'application ;
-* **C++ tests** : `make test` sous AddressSanitizer et UBSan, puis `make demo` ;
-* **Dependency review** : bloque une Pull Request qui ajoute une dépendance vulnérable ;
-* **CodeQL** : analyse de sécurité du code Python, C++ et des workflows.
+On every pull request and every push to `main`, GitHub Actions runs:
+* **Python tests**: Ruff lint, then `pytest` on the compression functions and on the app startup;
+* **C++ tests**: `make test` under AddressSanitizer and UBSan, then `make demo`;
+* **Dependency review**: blocks a pull request that adds a vulnerable dependency;
+* **CodeQL**: security analysis of the Python code, the C++ code and the workflows.
 
-**Dependabot** surveille les dépendances Python et les GitHub Actions. Les mises à jour patch et minor sont fusionnées automatiquement dès que les vérifications obligatoires de `main` sont passées. Voir aussi la [politique de sécurité](SECURITY.md) et le [Wiki](https://github.com/BnRomain/jpeg-compression/wiki).
+The `main` branch is protected: every change goes through a pull request and can only be merged once these checks pass.
 
-## 📄 Rapport & Présentation
+**Dependabot** monitors the Python dependencies and the GitHub Actions. Patch and minor updates are merged automatically once the required checks of `main` have passed. See also the [security policy](SECURITY.md) and the [wiki](https://github.com/BnRomain/jpeg-compression/wiki).
 
-Si vous êtes intéressé par les détails théoriques et l'analyse complète de ce projet, vous pouvez consulter :
+## 📄 Report & Slides
 
-- **📑 Rapport complet** : [Voir le rapport](python/docs/Rapport.pdf)  
-- **📊 Présentation Slides** : [Voir la présentation](python/docs/Presentation.pdf)  
+If you are interested in the theory and the full analysis of this project, you can read (in French):
 
-Ces documents détaillent :
-- L'algorithme DCT & CSR utilisé  
-- Les résultats et métriques de compression  
-- Les illustrations et comparaisons visuelles  
+- **📑 Full report**: [read the report](python/docs/report-fr.pdf)
+- **📊 Slides**: [view the slides](python/docs/slides-fr.pdf)
 
-Pour la version C++ :
+These documents cover:
+- the DCT & CSR algorithm
+- the compression results and metrics
+- illustrations and visual comparisons
 
-- **📑 Rapport de synthèse (2 pages)** : [Voir le rapport](cpp/docs/rapport.pdf)  
-- **📊 Présentation** : [Voir la présentation](cpp/docs/presentation.pdf)  
+For the C++ version:
+
+- **📑 Summary report (2 pages)**: [read the report](cpp/docs/report-fr.pdf)
+- **📊 Slides**: [view the slides](cpp/docs/slides-fr.pdf)
+
+## 🤝 Contributing
+
+Contributions are welcome. Please read the [contributing guide](CONTRIBUTING.md) and the [code of conduct](CODE_OF_CONDUCT.md) before opening an issue or a pull request. Security vulnerabilities must be reported privately, as described in the [security policy](SECURITY.md).
+
+## 📜 License
+
+This project is released under the [MIT License](LICENSE). The vendored stb headers in `cpp/third_party/` keep their own license (public domain or MIT), and the sample images are in the public domain (NASA) or under CC0.
+
+## 📚 Citation
+
+To cite this project, use the metadata in [`CITATION.cff`](CITATION.cff) or the "Cite this repository" button on GitHub.

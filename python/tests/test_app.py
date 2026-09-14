@@ -10,12 +10,12 @@ def test_app_starts_without_error():
     app.run(timeout=60)
 
     assert not app.exception
-    assert app.title[0].value == "📷 Compression DCT & Matrices CSR"
+    assert app.title[0].value == "📷 DCT & CSR Image Compression"
 
 
 def test_app_default_threshold_matches_compression_module():
     app = AppTest.from_file(str(APP))
     app.run(timeout=60)
 
-    # Seuil par défaut de l'application = seuil par défaut de compression()
+    # The app's default threshold is the default threshold of compression()
     assert app.sidebar.slider[0].value == 2

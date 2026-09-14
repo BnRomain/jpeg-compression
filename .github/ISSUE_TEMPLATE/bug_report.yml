@@ -1,0 +1,58 @@
+name: Bug report
+description: Report a problem with the Python app, the C++ program or the documentation.
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug.
+        Please do not report security vulnerabilities here: follow the [security policy](https://github.com/BnRomain/jpeg-compression/security/policy) instead.
+
+  - type: dropdown
+    id: component
+    attributes:
+      label: Component
+      options:
+        - "Python version / Streamlit app (python/)"
+        - "C++ version (cpp/)"
+        - "Documentation"
+        - "CI / GitHub Actions"
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: What happened, and what did you expect to happen?
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to reproduce
+      description: Commands, settings (threshold, alpha, mask...) and, if possible, the input image.
+      placeholder: |
+        1. cd cpp && make
+        2. ./jpeg_csr compress images/astronaut.png --alpha 5
+        3. ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: output
+    attributes:
+      label: Output or error message
+      description: Paste the terminal output or the Streamlit error. It is formatted as code automatically.
+      render: text
+
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      description: Operating system, Python or compiler version, and the commit or release you are using.
+      placeholder: "Ubuntu 24.04, g++ 13.2, commit abc1234"
+    validations:
+      required: true

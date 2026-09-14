@@ -11,11 +11,11 @@ namespace {
 void check_same_dimensions(const Image& a, const Image& b)
 {
     if (a.width() != b.width() || a.height() != b.height()) {
-        throw std::invalid_argument{"les deux images n'ont pas les mêmes dimensions"};
+        throw std::invalid_argument{"the two images do not have the same dimensions"};
     }
 }
 
-// Somme des carrés des écarts pixel à pixel sur les trois canaux.
+// Sum of the squared pixel differences over the three channels.
 double squared_distance(const Image& a, const Image& b)
 {
     double sum{};
@@ -51,7 +51,7 @@ double relative_l2_error(const Image& reference, const Image& approximation)
     const double error{std::sqrt(squared_distance(reference, approximation))};
     const double norm{std::sqrt(squared_norm(reference))};
     if (norm == 0.0) {
-        // Référence entièrement noire : l'erreur relative n'a de sens que si elle est nulle.
+        // Fully black reference: the relative error only makes sense if it is zero.
         return error == 0.0 ? 0.0 : std::numeric_limits<double>::infinity();
     }
     return error / norm;

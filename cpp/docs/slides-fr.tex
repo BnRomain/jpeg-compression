@@ -214,12 +214,12 @@ make test SANITIZE=1
   \begin{columns}[T]
     \begin{column}{0.54\textwidth}
 \begin{lstlisting}
-// Invariant : tous les diviseurs sont >= 1.
-// Comme |D| <= 8 * 128 = 1024, chaque coefficient
-// quantifié tient dans un std::int16_t.
+// Invariant: all divisors are >= 1.
+// Since |D| <= 8 * 128 = 1024, each quantized
+// coefficient fits in a std::int16_t.
 class QuantizationTable {
 public:
-    // lance std::invalid_argument si un diviseur < 1
+    // throws std::invalid_argument if a divisor is < 1
     explicit QuantizationTable(const Matrix8& divisors);
 
     static QuantizationTable standard();
@@ -259,10 +259,10 @@ public:
     virtual ~FrequencyMask() = default;
 };
 
-// k < F et l < F   (version Python)
+// k < F and l < F  (Python version)
 class SquareMask : public FrequencyMask { ... };
 
-// k + l < F        (sujet MAM3)
+// k + l < F        (MAM3 assignment)
 class TriangleMask : public FrequencyMask { ... };
 \end{lstlisting}
     \end{column}
@@ -295,8 +295,8 @@ int run_compress(const Options& options)
   \begin{columns}[T]
     \begin{column}{0.51\textwidth}
 \begin{lstlisting}
-// Tableau alloué par stbi_load : libéré par le
-// destructeur, même si une exception survient.
+// Array allocated by stbi_load: freed by the
+// destructor, even if an exception is thrown.
 class StbPixels {
 public:
     explicit StbPixels(const std::string& path);
@@ -314,8 +314,8 @@ private:
     \end{column}
     \begin{column}{0.45\textwidth}
 \begin{lstlisting}
-// CSR : trois std::vector, aucune opération
-// spéciale écrite (règle de zéro).
+// CSR: three std::vector, no special member
+// function written (rule of zero).
 class SparseMatrix {
     ...
 private:
@@ -335,20 +335,20 @@ private:
 
 \begin{frame}[fragile]{Utilisation}
 \begin{lstlisting}[language=bash]
-./jpeg_csr compress images/astronaut.png --alpha 5 --out resultats/alpha5
-./jpeg_csr decompress resultats/alpha5/astronaut.csr relue.png
+./jpeg_csr compress images/astronaut.png --out results/standard
+./jpeg_csr decompress results/standard/astronaut.csr decoded.png
 \end{lstlisting}
   \vspace{0.2em}
 \begin{lstlisting}[language={}]
-Image          : images/astronaut.png (512 x 512, rognée à 512 x 512)
-Réglages       : Q standard, alpha 1.00, seuil 2, masque carré F = 6
-Coefficients   : 45566 non nuls sur 786432 (taux de conservation 5.79 %)
-Qualité        : erreur L2 relative 5.43 %, PSNR 30.49 dB
-Mémoire dense  : 6144.00 Ko (float64, comme img.nbytes)
-Mémoire CSR    : 273.00 Ko (valeurs int16, indices int32)
-Gain mémoire   : dense / CSR = 22.51x
-Fichier .csr   : 273.52 Ko, image source 773.00 Ko
-Temps          : compression 28.23 ms, décompression 21.55 ms
+Image          : images/astronaut.png (512 x 512, cropped to 512 x 512)
+Settings       : Q standard, alpha 1.00, threshold 2, mask square F = 6
+Coefficients   : 45566 non-zero out of 786432 (retention rate 5.79 %)
+Quality        : relative L2 error 5.43 %, PSNR 30.49 dB
+Dense memory   : 6144.00 KiB (float64, like img.nbytes)
+CSR memory     : 273.00 KiB (int16 values, int32 indices)
+Memory gain    : dense / CSR = 22.51x
+.csr file      : 273.52 KiB, source image 773.00 KiB
+Time           : compression 28.23 ms, decompression 21.55 ms
 \end{lstlisting}
   \small Options : \code{--table standard|uniform|low|high}, \code{--alpha}, \code{--threshold},\\
   \code{--mask square|triangle}, \code{--cutoff}, \code{--noise}, \code{--out}.
@@ -401,7 +401,7 @@ Temps          : compression 28.23 ms, décompression 21.55 ms
 
 \begin{frame}{Résultats : bruit poivre et sel}
   \centering
-  \includegraphics[width=0.8\textwidth]{figures/bruit.png}\\[0.1em]
+  \includegraphics[width=0.8\textwidth]{figures/noise.png}\\[0.1em]
   {\scriptsize
     \makebox[0.2703\textwidth]{image pure}%
     \makebox[0.2703\textwidth]{bruitée à 5\,\%}%

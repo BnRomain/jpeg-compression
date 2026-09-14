@@ -1,6 +1,6 @@
-// Programme jpeg_csr : compression d'images inspirée de JPEG (DCT, quantification,
-// troncature des hautes fréquences) avec stockage creux CSR.
-// Version C++ de python/jpeg_compression.py et de l'application python/app.py.
+// jpeg_csr: JPEG-inspired image compression (DCT, quantization, high-frequency
+// truncation) with CSR sparse storage.
+// C++ version of python/jpeg_compression.py and of the python/app.py app.
 
 #include "codec.hpp"
 #include "compressed_image.hpp"
@@ -20,14 +20,6 @@
 #include <iostream>
 #include <string>
 
-#ifdef _WIN32
-#define WIN32_LEAN_AND_MEAN
-#ifndef NOMINMAX
-#define NOMINMAX   // empêche windows.h de définir les macros min et max
-#endif
-#include <windows.h>
-#endif
-
 namespace {
 
 namespace fs = std::filesystem;
@@ -38,7 +30,7 @@ double milliseconds_since(Clock::time_point start)
     return std::chrono::duration<double, std::milli>(Clock::now() - start).count();
 }
 
-double kilobytes(std::uintmax_t bytes)
+double kibibytes(std::uintmax_t bytes)
 {
     return static_cast<double>(bytes) / 1024.0;
 }
@@ -62,11 +54,11 @@ std::string table_name(jpeg::TableKind kind)
 {
     switch (kind) {
     case jpeg::TableKind::uniform:
-        return "uniforme (100)";
+        return "uniform (100)";
     case jpeg::TableKind::low_frequencies:
-        return "basses fréquences";
+        return "low frequencies";
     case jpeg::TableKind::high_frequencies:
-        return "hautes fréquences";
+        return "high frequencies";
     case jpeg::TableKind::standard:
         break;
     }
@@ -76,13 +68,13 @@ std::string table_name(jpeg::TableKind kind)
 void print_quality(const std::string& label, const jpeg::Image& reference,
                    const jpeg::Image& approximation)
 {
-    std::cout << label << "erreur L2 relative "
+    std::cout << label << "relative L2 error "
               << 100.0 * jpeg::relative_l2_error(reference, approximation) << " %, PSNR "
               << jpeg::psnr(reference, approximation) << " dB\n";
 }
 
-// Compression complète avec un masque dont le type réel n'est connu qu'à
-// l'exécution : cette fonction ne voit qu'une référence sur l'interface.
+// Full compression with a mask whose actual type is only known at run time:
+// this function only sees a reference to the interface.
 int compress_with_mask(const jpeg::Options& options, const jpeg::FrequencyMask& mask)
 {
     const jpeg::Image original{jpeg::load_image(options.input)};
@@ -93,11 +85,11 @@ int compress_with_mask(const jpeg::Options& options, const jpeg::FrequencyMask& 
     fs::create_directories(output_dir);
     const std::string stem{fs::path{options.input}.stem().string()};
 
-    // Image effectivement compressée : l'image rognée, bruitée si demandé.
+    // Image actually compressed: the cropped image, with noise if requested.
     jpeg::Image input{clean};
     if (options.noise > 0.0) {
         jpeg::add_salt_and_pepper(input, options.noise);
-        jpeg::save_png(input, (output_dir / (stem + "_bruitee.png")).string());
+        jpeg::save_png(input, (output_dir / (stem + "_noisy.png")).string());
     }
 
     Clock::time_point start{Clock::now()};
@@ -109,12 +101,12 @@ int compress_with_mask(const jpeg::Options& options, const jpeg::FrequencyMask& 
     const double decompression_ms{milliseconds_since(start)};
 
     const fs::path csr_path{output_dir / (stem + ".csr")};
-    const fs::path png_path{output_dir / (stem + "_reconstruite.png")};
+    const fs::path png_path{output_dir / (stem + "_reconstructed.png")};
     jpeg::save_compressed(compressed, csr_path.string());
     jpeg::save_png(reconstructed, png_path.string());
 
-    // Mêmes indicateurs que l'application Streamlit. « Données RAM » y valait
-    // img.nbytes : l'image d'origine dépliée en float64, 8 octets par valeur.
+    // Same metrics as the Streamlit app. "RAM data" there is img.nbytes:
+    // the original image unfolded as float64, 8 bytes per value.
     const std::uintmax_t dense_bytes{original.size() * sizeof(double)};
     const std::uintmax_t csr_bytes{compressed.storage_bytes()};
     const std::uintmax_t csr_file_bytes{fs::file_size(csr_path)};
@@ -122,41 +114,41 @@ int compress_with_mask(const jpeg::Options& options, const jpeg::FrequencyMask& 
 
     std::cout << std::fixed << std::setprecision(2)
               << "Image          : " << options.input << " (" << original.width() << " x "
-              << original.height() << ", rognée à " << clean.width() << " x " << clean.height() << ")\n"
-              << "Réglages       : Q " << table_name(options.table) << ", alpha " << options.alpha
-              << ", seuil " << options.threshold << ", masque " << mask.name();
+              << original.height() << ", cropped to " << clean.width() << " x " << clean.height() << ")\n"
+              << "Settings       : Q " << table_name(options.table) << ", alpha " << options.alpha
+              << ", threshold " << options.threshold << ", mask " << mask.name();
     if (options.noise > 0.0) {
-        std::cout << ", bruit " << 100.0 * options.noise << " %";
+        std::cout << ", noise " << 100.0 * options.noise << " %";
     }
     std::cout << '\n'
-              << "Coefficients   : " << compressed.nnz() << " non nuls sur "
-              << compressed.coefficient_count() << " (taux de conservation "
+              << "Coefficients   : " << compressed.nnz() << " non-zero out of "
+              << compressed.coefficient_count() << " (retention rate "
               << 100.0 * compressed.conservation_rate() << " %)\n";
-    print_quality("Qualité        : ", input, reconstructed);
+    print_quality("Quality        : ", input, reconstructed);
     if (options.noise > 0.0) {
-        // Effet débruitage : on compare à l'image sans bruit l'image bruitée,
-        // puis l'image reconstruite. Une erreur plus faible après compression
-        // signifie qu'une partie du bruit a été filtrée.
-        print_quality("Bruitée / pure : ", clean, input);
-        print_quality("Reconst. / pure: ", clean, reconstructed);
+        // Denoising effect: the noisy image, then the reconstructed image, are
+        // compared with the clean image. A lower error after compression means
+        // that part of the noise was filtered out.
+        print_quality("Noisy / clean  : ", clean, input);
+        print_quality("Rebuilt / clean: ", clean, reconstructed);
     }
-    std::cout << "Mémoire dense  : " << kilobytes(dense_bytes) << " Ko (float64, comme img.nbytes)\n"
-              << "Mémoire CSR    : " << kilobytes(csr_bytes) << " Ko (valeurs int16, indices int32)\n"
-              << "Gain mémoire   : dense / CSR = "
+    std::cout << "Dense memory   : " << kibibytes(dense_bytes) << " KiB (float64, like img.nbytes)\n"
+              << "CSR memory     : " << kibibytes(csr_bytes) << " KiB (int16 values, int32 indices)\n"
+              << "Memory gain    : dense / CSR = "
               << static_cast<double>(dense_bytes) / static_cast<double>(csr_bytes) << "x\n"
-              << "Fichier .csr   : " << kilobytes(csr_file_bytes) << " Ko, image source "
-              << kilobytes(source_file_bytes) << " Ko (source / .csr = "
+              << ".csr file      : " << kibibytes(csr_file_bytes) << " KiB, source image "
+              << kibibytes(source_file_bytes) << " KiB (source / .csr = "
               << static_cast<double>(source_file_bytes) / static_cast<double>(csr_file_bytes) << "x)\n"
-              << "Temps          : compression " << compression_ms << " ms, décompression "
+              << "Time           : compression " << compression_ms << " ms, decompression "
               << decompression_ms << " ms\n"
-              << "Fichiers       : " << csr_path.generic_string() << ", " << png_path.generic_string() << '\n';
+              << "Files          : " << csr_path.generic_string() << ", " << png_path.generic_string() << '\n';
     return 0;
 }
 
 int run_compress(const jpeg::Options& options)
 {
-    // Le masque est choisi à l'exécution. Seul l'objet réellement demandé est
-    // construit, et il vit jusqu'à la fin de compress_with_mask.
+    // The mask is chosen at run time. Only the requested object is built, and
+    // it lives until the end of compress_with_mask.
     if (options.mask == jpeg::MaskKind::triangle) {
         const jpeg::TriangleMask mask{options.cutoff};
         return compress_with_mask(options, mask);
@@ -179,12 +171,12 @@ int run_decompress(const jpeg::Options& options)
     jpeg::save_png(image, output.string());
 
     std::cout << std::fixed << std::setprecision(2)
-              << "Fichier        : " << options.input << " (" << compressed.width() << " x "
+              << "File           : " << options.input << " (" << compressed.width() << " x "
               << compressed.height() << ")\n"
-              << "Coefficients   : " << compressed.nnz() << " non nuls (taux de conservation "
+              << "Coefficients   : " << compressed.nnz() << " non-zero (retention rate "
               << 100.0 * compressed.conservation_rate() << " %)\n"
-              << "Temps          : lecture et décompression " << elapsed_ms << " ms\n"
-              << "Image écrite   : " << output.string() << '\n';
+              << "Time           : reading and decompression " << elapsed_ms << " ms\n"
+              << "Image written  : " << output.string() << '\n';
     return 0;
 }
 
@@ -192,10 +184,6 @@ int run_decompress(const jpeg::Options& options)
 
 int main(int argc, char* argv[])
 {
-#ifdef _WIN32
-    // La console Windows n'interprète pas l'UTF-8 par défaut (accents des messages).
-    SetConsoleOutputCP(CP_UTF8);
-#endif
     try {
         const jpeg::Options options{jpeg::parse_options(argc, argv)};
         switch (options.command) {
@@ -209,8 +197,8 @@ int main(int argc, char* argv[])
         jpeg::print_usage(std::cout);
         return 0;
     } catch (const std::exception& error) {
-        // Toutes les erreurs (arguments, fichiers, invariants violés) remontent ici.
-        std::cerr << "Erreur : " << error.what() << '\n';
+        // Every error (arguments, files, violated invariants) ends up here.
+        std::cerr << "Error: " << error.what() << '\n';
         return 1;
     }
 }

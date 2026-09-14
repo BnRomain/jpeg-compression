@@ -5,15 +5,16 @@
 
 namespace jpeg {
 
-// Bruit « poivre et sel » : chaque pixel est remplacé, avec la probabilité
-// `probability`, par un pixel noir (0) ou blanc (255), les deux cas étant
-// équiprobables. Ce bruit est fait de variations très rapides, donc de hautes
-// fréquences, que la compression atténue (effet passe-bas étudié dans le rapport).
+// "Salt-and-pepper" noise: with probability `probability`, each pixel is
+// replaced by a black (0) or white (255) pixel, both cases being equally
+// likely. This noise is made of very fast variations, hence of high
+// frequencies, which the compression attenuates (low-pass effect studied in
+// the report).
 //
-// L'image est modifiée sur place, d'où le passage par référence non constante.
-// Le générateur pseudo-aléatoire est initialisé avec `seed` : les expériences
-// sont reproductibles.
-// Lance std::invalid_argument si probability n'est pas dans [0, 1].
+// The image is modified in place, hence the non-const reference.
+// The pseudo-random generator is seeded with `seed`: experiments are
+// reproducible.
+// Throws std::invalid_argument if probability is not in [0, 1].
 void add_salt_and_pepper(Image& image, double probability, unsigned seed = 42);
 
 } // namespace jpeg

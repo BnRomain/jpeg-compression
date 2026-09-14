@@ -11,8 +11,8 @@ namespace {
 std::size_t checked_cutoff(std::size_t cutoff, std::size_t maximum)
 {
     if (cutoff == 0 || cutoff > maximum) {
-        throw std::invalid_argument{"fréquence de coupure hors de [1, "
-                                    + std::to_string(maximum) + "] : "
+        throw std::invalid_argument{"cutoff frequency outside [1, "
+                                    + std::to_string(maximum) + "]: "
                                     + std::to_string(cutoff)};
     }
     return cutoff;
@@ -31,7 +31,7 @@ bool SquareMask::keeps(std::size_t k, std::size_t l) const
 
 std::string SquareMask::name() const
 {
-    return "carré F = " + std::to_string(cutoff_);
+    return "square F = " + std::to_string(cutoff_);
 }
 
 TriangleMask::TriangleMask(std::size_t cutoff)

@@ -1,0 +1,24 @@
+root = true
+
+[*]
+charset = utf-8
+indent_style = space
+indent_size = 4
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+[*.{yml,yaml,cff,md,tex}]
+indent_size = 2
+
+[*.{md,tex}]
+trim_trailing_whitespace = false
+
+[Makefile]
+indent_style = tab
+
+[cpp/third_party/**]
+charset = unset
+indent_style = unset
+indent_size = unset
+insert_final_newline = unset
+trim_trailing_whitespace = unset

@@ -1,34 +1,41 @@
-# Version Python (projet MAM3)
+# Python Version (MAM3 project)
 
-Implémentation d'origine du projet : module de compression `jpeg_compression.py`
-et application Streamlit `app.py`. Présentation complète du projet dans le
-[README principal](../README.md).
+Original implementation of the project: the compression module `jpeg_compression.py`
+and the Streamlit app `app.py`. The full project description is in the
+[main README](../README.md).
 
-Réalisé par Romain Ben, Evrard Lecureur et Zouhair Saitout (MAM3, Polytech Nice Sophia).
+Developed by Romain Ben, Evrard Lecureur and Zouhair Saitout (MAM3, Polytech Nice Sophia).
 
-## Lancer l'application
+## Run the app
 
 ```bash
 pip install -r requirements.txt
 streamlit run app.py
 ```
 
-Démo en ligne : [jpeg-csr-compression.streamlit.app](https://jpeg-csr-compression.streamlit.app/)
+Live demo: [jpeg-csr-compression.streamlit.app](https://jpeg-csr-compression.streamlit.app/)
 
-## Lancer les tests
+## Run the tests
 
 ```bash
 pip install -r requirements-dev.txt
 python -m pytest -v
 ```
 
-- `tests/test_compression.py` : matrice DCT, rognage, compression, décompression, conversion CSR ;
-- `tests/test_app.py` : démarrage de l'application Streamlit.
+- `tests/test_compression.py`: DCT matrix, cropping, compression, decompression, CSR conversion;
+- `tests/test_app.py`: Streamlit app startup.
 
-Les versions des dépendances sont figées dans `requirements.txt` et
-`requirements-dev.txt` : Dependabot propose chaque semaine les mises à jour.
+The code is linted with [Ruff](https://docs.astral.sh/ruff/), configured in
+[`ruff.toml`](../ruff.toml). From the repository root:
 
-## Documents
+```bash
+ruff check python cpp/scripts
+```
 
-- [Rapport](docs/Rapport.pdf)
-- [Présentation](docs/Presentation.pdf)
+Dependency versions are pinned in `requirements.txt` and
+`requirements-dev.txt`: Dependabot proposes updates every week.
+
+## Documents (French)
+
+- [Report](docs/report-fr.pdf)
+- [Slides](docs/slides-fr.pdf)

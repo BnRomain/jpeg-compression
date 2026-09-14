@@ -2,6 +2,7 @@
 __pycache__/
 *.py[cod]
 .pytest_cache/
+.ruff_cache/
 .venv/
 venv/
 .streamlit/secrets.toml
@@ -12,10 +13,10 @@ cpp/jpeg_csr
 cpp/jpeg_csr.exe
 cpp/run_tests
 cpp/run_tests.exe
-cpp/resultats/
+cpp/results/
 *.o
 
-# LaTeX (fichiers intermédiaires)
+# LaTeX (intermediate files)
 *.aux
 *.fdb_latexmk
 *.fls
@@ -27,7 +28,7 @@ cpp/resultats/
 *.toc
 *.vrb
 
-# Système et éditeurs
+# OS and editors
 .DS_Store
 Thumbs.db
 desktop.ini

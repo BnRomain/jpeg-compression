@@ -31,8 +31,8 @@ Matrix8 Matrix8::transposed() const
 Matrix8 operator*(const Matrix8& lhs, const Matrix8& rhs)
 {
     Matrix8 result{};
-    // Ordre de boucles i, k, j : la ligne k de rhs est parcourue d'un seul
-    // tenant, ce qui est plus favorable au cache que l'ordre naïf i, j, k.
+    // Loop order i, k, j: row k of rhs is traversed in one go, which is more
+    // cache-friendly than the naive order i, j, k.
     for (std::size_t i{0}; i < block_size; ++i) {
         for (std::size_t k{0}; k < block_size; ++k) {
             const double factor{lhs(i, k)};

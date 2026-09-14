@@ -4,9 +4,9 @@ from scipy.sparse import csr_matrix
 from jpeg_compression import (
     DCT2_P,
     D_matrix,
-    init,
     compression,
     decompression,
+    init,
 )
 
 
@@ -51,7 +51,7 @@ def test_compression():
     rng = np.random.default_rng(42)
     img = rng.random((17, 19, 3))
 
-    result = compression(img, seuil=2)
+    result = compression(img, threshold=2)
 
     # Image cropped to multiples of 8
     assert result.shape == (16, 16, 3)
@@ -64,7 +64,7 @@ def test_compression_removes_high_frequencies():
     rng = np.random.default_rng(42)
     img = rng.random((16, 16, 3))
 
-    result = compression(img, seuil=2)
+    result = compression(img, threshold=2)
 
     for channel in range(3):
         for i in range(0, 16, 8):
@@ -80,7 +80,7 @@ def test_decompression():
     rng = np.random.default_rng(42)
     img = rng.random((17, 19, 3))
 
-    compressed = compression(img, seuil=2)
+    compressed = compression(img, threshold=2)
     result = decompression(compressed)
 
     assert result.shape == (16, 16, 3)
@@ -95,7 +95,7 @@ def test_compression_decompression_pipeline():
     # Simple synthetic image
     img = np.full((16, 16, 3), 0.5)
 
-    compressed = compression(img, seuil=2)
+    compressed = compression(img, threshold=2)
     reconstructed = decompression(compressed)
 
     assert reconstructed.shape == img.shape
@@ -111,7 +111,7 @@ def test_csr_conversion():
     rng = np.random.default_rng(42)
     img = rng.random((16, 16, 3))
 
-    compressed = compression(img, seuil=2)
+    compressed = compression(img, threshold=2)
 
     matrices = [
         csr_matrix(compressed[:, :, channel].astype(np.int16))
