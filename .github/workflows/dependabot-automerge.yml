@@ -11,20 +11,31 @@ jobs:
   dependabot:
     runs-on: ubuntu-latest
 
-    if: github.event.pull_request.user.login == 'dependabot[bot]'
+    # Only pull requests opened by Dependabot in this repository.
+    if: github.event.pull_request.user.login == 'dependabot[bot]' && github.repository == 'BnRomain/jpeg-compression'
 
     steps:
       - name: Dependabot metadata
         id: metadata
-        uses: dependabot/fetch-metadata@25dd0e34f4fe68f24cc83900b1fe3fe149efef98
+        uses: dependabot/fetch-metadata@25dd0e34f4fe68f24cc83900b1fe3fe149efef98 # v3.1.0
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Enable auto-merge
+      # Auto-merge waits for the required status checks of the main branch
+      # ruleset (python, cpp, dependency-review) before merging.
+      - name: Enable auto-merge for patch and minor updates
         if: |
           steps.metadata.outputs.update-type == 'version-update:semver-patch' ||
           steps.metadata.outputs.update-type == 'version-update:semver-minor'
         run: gh pr merge --auto --squash "$PR_URL"
         env:
           PR_URL: ${{ github.event.pull_request.html_url }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Ask for a manual review of major updates
+        if: steps.metadata.outputs.update-type == 'version-update:semver-major'
+        run: gh pr comment "$PR_URL" --body "Mise à jour majeure (${DEPENDENCIES}) : vérifier les changements incompatibles avant de fusionner à la main."
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          DEPENDENCIES: ${{ steps.metadata.outputs.dependency-names }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

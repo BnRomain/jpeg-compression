@@ -9,7 +9,7 @@ permissions:
   contents: read
 
 jobs:
-  test:
+  python:
     runs-on: ubuntu-latest
 
     defaults:
@@ -25,24 +25,14 @@ jobs:
         with:
           python-version: "3.12"
           cache: "pip"
-          cache-dependency-path: python/requirements.txt
+          cache-dependency-path: |
+            python/requirements.txt
+            python/requirements-dev.txt
 
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
-
-      - name: Install test dependencies
-        run: |
-          pip install pytest
-
-      - name: Debug files
-        run: |
-          pwd
-          ls -la
-          python -c "import sys; print(sys.path)"
-          python -c "import os; print(os.listdir('.'))"
+          pip install -r requirements-dev.txt
 
       - name: Run tests
-        run: |
-          python -m pytest -v
+        run: python -m pytest -v
