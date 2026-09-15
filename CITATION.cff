@@ -20,7 +20,7 @@ authors:
   - given-names: Karim
     family-names: Zrig
     affiliation: "Polytech Nice Sophia, Université Côte d'Azur"
-version: 1.0.0
+version: 1.0.1
 license: MIT
 repository-code: "https://github.com/BnRomain/jpeg-compression"
 url: "https://jpeg-csr-compression.streamlit.app/"
