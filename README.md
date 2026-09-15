@@ -93,7 +93,7 @@ jpeg-compression/
 │   ├── tests/                unit tests
 │   ├── third_party/          stb_image and stb_image_write
 │   ├── scripts/              comparison with Python, figures
-│   └── docs/                 summary report and slides (French)
+│   └── docs/                 report and slides (French)
 ├── .github/                  workflows, issue and pull request templates, Dependabot
 ├── CITATION.cff              citation metadata
 ├── CODE_OF_CONDUCT.md        code of conduct
@@ -131,8 +131,8 @@ These documents cover:
 
 For the C++ version:
 
-- **📑 Summary report (2 pages)**: [read the report](cpp/docs/report-fr.pdf)
-- **📊 Slides**: [view the slides](cpp/docs/slides-fr.pdf)
+- **📑 Report (4 pages)**, focused on the design of the code and the representation of the data in C++: [read the report](cpp/docs/report-fr.pdf)
+- **📊 Slides** (10-minute talk): [view the slides](cpp/docs/slides-fr.pdf)
 
 ## 🤝 Contributing
 

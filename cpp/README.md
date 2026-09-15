@@ -8,8 +8,9 @@ reproduces the analyses of the MAM3 report.
 
 C++ programming project, MAM4 at Polytech Nice Sophia: Romain Ben and Karim Zrig.
 
-- Summary report (2 pages, French): [`docs/report-fr.pdf`](docs/report-fr.pdf)
-- Slides (French): [`docs/slides-fr.pdf`](docs/slides-fr.pdf)
+- Report (4 pages, French), focused on the design of the code and on how the
+  data is represented in C++: [`docs/report-fr.pdf`](docs/report-fr.pdf)
+- Slides for a 10-minute talk (French): [`docs/slides-fr.pdf`](docs/slides-fr.pdf)
 
 ## Build
 
@@ -84,6 +85,24 @@ cpp/
 | `codec` | `compress` and `decompress` | `const T&`, reference to the interface |
 | `metrics`, `noise` | relative L2 error, PSNR, salt-and-pepper noise | `T&` to modify, `<random>` |
 | `options`, `main` | command line and output | `std::string`, `enum class`, `try` / `catch` |
+
+## Data representation
+
+The main goal of this project was to learn C++: each object of the problem is
+represented by a type chosen for a reason. The report explains these choices in
+detail.
+
+| Object | C++ representation | Why |
+|---|---|---|
+| RGB image | `Image`: a single `std::vector<double>` of width x height x 3 values, row by row, index `(row * width + col) * 3 + channel` | one allocation, contiguous memory and a single invariant on the size; `operator()` is overloaded for mutable and `const` images, `at()` checks the bounds |
+| 8x8 block, matrix P | `Matrix8`: `std::array<double, 64>` | size known at compile time, so no dynamic allocation for the 12,288 blocks of a 512x512 image; the free `operator*` writes P M Pᵀ like the formula |
+| DCT | `Dct`: P and Pᵀ computed once, in the constructor | members are initialized in declaration order, so `p_` is declared before `p_transposed_` |
+| Quantization matrix | `QuantizationTable`: a `Matrix8` with the invariant "all divisors >= 1" | bounds the quantized coefficients by 1024, hence the `std::int16_t` storage; static functions name the four tables, `scaled(alpha)` returns a new, checked table |
+| Sparse channel | `SparseMatrix`: three `std::vector` (int16 values, int32 column indices and row pointers) | same layout and types as `scipy.sparse.csr_matrix`; the constructor used when reading a file takes the arrays by value, moves them and checks the CSR invariant |
+| Compressed image | `CompressedImage`: dimensions, Q and a `std::vector` of 3 `SparseMatrix` | composition; the `.csr` file is written with overloaded `write` and `read` functions and fully validated when read back |
+| Truncation shape | `FrequencyMask` interface, implemented by `SquareMask` and `TriangleMask` | `compress` takes a `const FrequencyMask&`: a new shape needs no change to the compression |
+| Command-line settings | `struct Options` with default member values, `enum class` choices | no invariant of its own; an `enum class` rejects any value outside the list at compile time |
+| Pixels decoded by stb | `StbPixels`, private to `image_io.cpp` (RAII, copy deleted) | the only raw resource of the program; every other class follows the rule of zero |
 
 ## Mapping to the Python version
 
