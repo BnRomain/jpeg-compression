@@ -4,6 +4,7 @@
 #   make test            builds and runs the unit tests
 #   make demo            compresses the sample image with several settings
 #   make SANITIZE=1 ...  adds AddressSanitizer and UBSan (Linux, macOS)
+#   make COVERAGE=1 ...  adds gcov instrumentation (report: gcovr --root . --filter src/)
 #   make clean           removes the generated files
 
 CXX = g++
@@ -14,6 +15,12 @@ CPPFLAGS += -Iinclude -isystem third_party
 ifeq ($(SANITIZE),1)
 CXXFLAGS += -g -fsanitize=address,undefined
 LDFLAGS += -fsanitize=address,undefined
+endif
+
+# -O0 keeps the executed lines aligned with the source for the coverage report.
+ifeq ($(COVERAGE),1)
+CXXFLAGS += -O0 --coverage
+LDFLAGS += --coverage
 endif
 
 # On Windows (MinGW), g++ adds the .exe extension and the program is linked

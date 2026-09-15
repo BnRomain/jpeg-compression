@@ -27,3 +27,20 @@ jobs:
         run: |
           make clean
           make demo
+
+      - name: Setup Python for gcovr
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+          cache: "pip"
+          cache-dependency-path: cpp/requirements-ci.txt
+
+      - name: Install gcovr
+        run: pip install -r requirements-ci.txt
+
+      - name: Line coverage of the tests and the demo
+        run: |
+          make clean
+          make test COVERAGE=1
+          make demo COVERAGE=1
+          gcovr --root . --filter src/ --txt --markdown "$GITHUB_STEP_SUMMARY" --fail-under-line 80

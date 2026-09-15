@@ -34,9 +34,15 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements-dev.txt
 
-      - name: Lint with Ruff
+      - name: Lint and check formatting with Ruff
         working-directory: .
-        run: ruff check python cpp/scripts
+        run: |
+          ruff check python cpp/scripts
+          ruff format --check python cpp/scripts
 
-      - name: Run tests
+      - name: Run tests with coverage
         run: python -m pytest -v
+
+      - name: Publish the coverage summary
+        if: always()
+        run: python -m coverage report --format=markdown >> "$GITHUB_STEP_SUMMARY"

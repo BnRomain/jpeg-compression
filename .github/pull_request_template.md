@@ -11,7 +11,7 @@
 
 ## Checklist
 
-- [ ] Python: `python -m pytest -v` and `ruff check python cpp/scripts` pass (if `python/` or `cpp/scripts/` changed)
+- [ ] Python: `python -m pytest -v`, `ruff check python cpp/scripts` and `ruff format --check python cpp/scripts` pass (if `python/` or `cpp/scripts/` changed)
 - [ ] C++: `make test` passes without new compiler warnings (if `cpp/` changed)
 - [ ] Both implementations still produce the same coefficients (if the algorithm changed)
 - [ ] Tests added or updated for this change

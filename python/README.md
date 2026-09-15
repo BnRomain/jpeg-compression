@@ -25,11 +25,15 @@ python -m pytest -v
 - `tests/test_compression.py`: DCT matrix, cropping, compression, decompression, CSR conversion;
 - `tests/test_app.py`: Streamlit app startup.
 
-The code is linted with [Ruff](https://docs.astral.sh/ruff/), configured in
-[`ruff.toml`](../ruff.toml). From the repository root:
+Every test run also prints a coverage report, configured in
+[`pyproject.toml`](pyproject.toml).
+
+The code is linted and formatted with [Ruff](https://docs.astral.sh/ruff/),
+configured in [`ruff.toml`](../ruff.toml). From the repository root:
 
 ```bash
 ruff check python cpp/scripts
+ruff format python cpp/scripts
 ```
 
 Dependency versions are pinned in `requirements.txt` and

@@ -68,7 +68,10 @@ def time_cpp(image_path, output_dir):
     for _ in range(REPEAT):
         run = subprocess.run(
             [str(EXECUTABLE), "compress", str(image_path), "--out", str(output_dir)],
-            capture_output=True, text=True, encoding="utf-8", check=True,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            check=True,
         )
         match = re.search(r"compression ([\d.]+) ms, decompression ([\d.]+) ms", run.stdout)
         best = min(best, float(match.group(1)) + float(match.group(2)))
@@ -89,8 +92,12 @@ def main():
     py_coefficients = py_coefficients.astype(np.int16)
     mismatches = np.count_nonzero(py_coefficients != cpp_coefficients)
 
-    cpp_png = cv2.cvtColor(cv2.imdecode(np.fromfile(output_dir / f"{image_path.stem}_reconstructed.png",
-                                                    dtype=np.uint8), cv2.IMREAD_COLOR), cv2.COLOR_BGR2RGB)
+    cpp_png = cv2.cvtColor(
+        cv2.imdecode(
+            np.fromfile(output_dir / f"{image_path.stem}_reconstructed.png", dtype=np.uint8), cv2.IMREAD_COLOR
+        ),
+        cv2.COLOR_BGR2RGB,
+    )
     pixel_gap = np.abs(py_reconstructed * 255 - cpp_png.astype(float)).max()
 
     csr_bytes = sum(
@@ -100,12 +107,16 @@ def main():
 
     print(f"Image                         : {image_path} {image.shape[1]} x {image.shape[0]}")
     print(f"Different coefficients        : {mismatches} out of {py_coefficients.size}")
-    print(f"Non-zero coefficients         : Python {np.count_nonzero(py_coefficients)}, "
-          f"C++ {np.count_nonzero(cpp_coefficients)}")
+    print(
+        f"Non-zero coefficients         : Python {np.count_nonzero(py_coefficients)}, "
+        f"C++ {np.count_nonzero(cpp_coefficients)}"
+    )
     print(f"Python CSR size (SciPy)       : {csr_bytes / 1024:.2f} KiB")
     print(f"Max. pixel gap                : {pixel_gap:.3f} (out of 255, PNG rounding included)")
-    print(f"Compression + decompression   : Python {py_ms:.1f} ms, C++ {cpp_ms:.1f} ms "
-          f"(C++ {py_ms / cpp_ms:.0f} times faster, best of {REPEAT} runs)")
+    print(
+        f"Compression + decompression   : Python {py_ms:.1f} ms, C++ {cpp_ms:.1f} ms "
+        f"(C++ {py_ms / cpp_ms:.0f} times faster, best of {REPEAT} runs)"
+    )
 
 
 if __name__ == "__main__":
