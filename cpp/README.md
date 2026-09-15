@@ -11,6 +11,7 @@ C++ programming project, MAM4 at Polytech Nice Sophia: Romain Ben and Karim Zrig
 - Report (4 pages, French), focused on the design of the code and on how the
   data is represented in C++: [`docs/report-fr.pdf`](docs/report-fr.pdf)
 - Slides for a 10-minute talk (French): [`docs/slides-fr.pdf`](docs/slides-fr.pdf)
+- Talk script, slide by slide with timings (French): [`docs/talk-script-fr.md`](docs/talk-script-fr.md)
 
 ## Build
 
@@ -69,7 +70,7 @@ cpp/
 ├── scripts/           comparison with Python, figure generation
 ├── images/            test images
 ├── third_party/       stb_image and stb_image_write (public domain)
-└── docs/              report and slides (LaTeX and PDF, French)
+└── docs/              report, slides (LaTeX and PDF) and talk script, French
 ```
 
 | Module | Purpose | Course concepts |
