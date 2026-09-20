@@ -16,6 +16,9 @@ cpp/jpeg_csr.exe
 cpp/run_tests
 cpp/run_tests.exe
 cpp/results/
+cpp/submission/jpeg_csr
+cpp/submission/jpeg_csr.exe
+cpp/submission/results/
 *.o
 *.gcda
 *.gcno
