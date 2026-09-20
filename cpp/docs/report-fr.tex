@@ -54,7 +54,7 @@
   {\Large\bfseries\color{accent} Compression d'image par DCT et stockage CSR en C++}\\[2pt]
   {\large Conception du code et représentation des données}\\[3pt]
   Romain \textsc{Ben}, Karim \textsc{Zrig} \quad|\quad MAM4 Polytech Nice Sophia, projet C++ \quad|\quad septembre 2026\\[1pt]
-  {\small Code source : \url{https://github.com/BnRomain/jpeg-compression}, dossier \code{cpp/}}
+  {\small Code source : \url{https://github.com/BnRomain/jpeg-compression}, dossier \code{cpp/submission/}}
 \end{center}
 
 \section{Objectif}
@@ -66,7 +66,7 @@ d'un programme en ligne de commande, \code{jpeg\_csr}. Le but de la semaine éta
 le C++, ce rapport ne revient que brièvement sur l'algorithme. Il explique surtout comment nous
 avons représenté chaque objet du problème en C++ (image, bloc, matrice de quantification,
 matrice creuse, fichier compressé) et quelles notions du cours ont guidé ces choix. Le code
-source, rendu avec ce rapport, est commenté module par module : nous n'en citons ici que de
+source, rendu avec ce rapport, est commenté section par section : nous n'en citons ici que de
 courts extraits.
 
 \section{L'algorithme en bref}
@@ -83,17 +83,20 @@ $\tilde M = P^{T}(\hat D \odot \alpha Q)\,P + 128$, borné à $[0,255]$ ; comme 
 orthogonale, aucune inversion de matrice n'est nécessaire.
 
 \section{Organisation du code}
-Le code suit la compilation séparée vue en séance 2 : chaque module a un en-tête dans
-\code{include/}, qui documente ses invariants et les exceptions qu'il peut lancer, et ses
-définitions dans \code{src/}. Tout est rangé dans l'espace de noms \code{jpeg} ; les fonctions
-utilitaires propres à un fichier sont placées dans un espace de noms anonyme, invisible depuis
-les autres fichiers. Le \code{Makefile} compile chaque \code{.cpp} en objet avec les options du
-cours (\code{-std=c++20 -Wall -Wextra -pedantic}, plus \code{-O2}), recompile dès qu'un en-tête
-change et construit deux exécutables à partir des mêmes objets : \code{jpeg\_csr} (avec
-\code{main.cpp}) et \code{run\_tests} (avec \code{tests/test\_main.cpp}). La bibliothèque stb,
-qui lit et écrit les fichiers PNG et JPEG, n'est incluse que dans \code{image\_io.cpp} : le reste
-du programme ne manipule que notre classe \code{Image}. Le schéma suit le trajet des données ;
-chaque boîte est un type ou une fonction du code.
+Le code rendu tient en trois fichiers : \code{jpeg.hpp} déclare tous les types et toutes les
+fonctions en documentant leurs invariants et les exceptions qu'ils peuvent lancer,
+\code{jpeg.cpp} en donne les définitions dans le même ordre, et \code{main.cpp} contient le
+programme. Les douze sections, de \code{Matrix8} à la ligne de commande, portent les mêmes
+numéros dans les deux premiers fichiers. C'est la compilation séparée de la séance 2 : les deux
+\code{.cpp} forment deux unités de traduction, compilées avec les options du cours
+(\code{-std=c++20 -Wall -Wextra -pedantic}, plus \code{-O2}) puis liées. Tout est rangé dans
+l'espace de noms \code{jpeg} ; les fonctions utilitaires d'une section sont placées dans un
+espace de noms anonyme, invisible depuis l'autre fichier. La bibliothèque stb, qui lit et écrit
+les fichiers PNG et JPEG, n'est incluse que par \code{jpeg.cpp} : le reste du programme ne
+manipule que notre classe \code{Image}. Le dépôt garde en plus le même code éclaté en onze
+modules, avec un \code{Makefile} qui construit \code{jpeg\_csr} et \code{run\_tests} à partir des
+mêmes objets ; les deux versions produisent des fichiers identiques octet par octet. Le schéma
+suit le trajet des données ; chaque boîte est un type ou une fonction du code.
 
 \begin{center}
 \begin{tikzpicture}[font=\scriptsize, node distance=0.35cm,
@@ -292,7 +295,7 @@ est donc toujours valide, et les fonctions de calcul n'ont rien à revérifier. 
 \begin{minipage}[t]{0.45\textwidth}
 \vspace{0pt}
 \begin{lstlisting}
-// image_io.cpp, anonymous namespace
+// jpeg.cpp section 9, anonymous namespace
 class StbPixels {
 public:
     explicit StbPixels(const std::string& path);
@@ -370,7 +373,7 @@ la version Python (orthogonalité de $P$, rognage, suppression des hautes fréqu
 conversion CSR), les invariants de chaque classe (un constructeur doit lancer une exception sur
 une entrée invalide), l'aller-retour par fichier \code{.csr} et l'analyse de la ligne de
 commande. L'intégration continue GitHub les relance sous AddressSanitizer et UBSan, comme en TD,
-et mesure la couverture : 91\,\% des lignes de \code{src/} sont exécutées par les tests et la
+et mesure la couverture : 91\,\% des lignes du code sont exécutées par les tests et la
 démonstration. Le script \code{compare\_with\_python.py} compresse la même image avec les deux
 versions : 786\,407 coefficients sur 786\,432 sont identiques, avec autant de non nuls. Les 25
 autres diffèrent de 1 à cause d'un arrondi flottant côté Python, où l'image passe par $/255$ puis
