@@ -66,6 +66,7 @@ cpp/
 ├── Makefile
 ├── include/           one commented header per module
 ├── src/               definitions and main.cpp
+├── submission/        the same code in three files, for handing in
 ├── tests/             unit tests (assert)
 ├── scripts/           comparison with Python, figure generation
 ├── images/            test images
@@ -86,6 +87,24 @@ cpp/
 | `codec` | `compress` and `decompress` | `const T&`, reference to the interface |
 | `metrics`, `noise` | relative L2 error, PSNR, salt-and-pepper noise | `T&` to modify, `<random>` |
 | `options`, `main` | command line and output | `std::string`, `enum class`, `try` / `catch` |
+
+### Three-file version for handing in
+
+The course requires a small number of source files. [`submission/`](submission)
+holds exactly the same code, regrouped into three files: `jpeg.hpp` (every
+declaration), `jpeg.cpp` (every definition, in the same order) and `main.cpp`
+(the program). The sections are numbered identically in the two files, so the
+declaration and the definition of a class are found the same way.
+
+```bash
+cd submission
+g++ -std=c++20 -O2 -Wall -Wextra -pedantic -isystem ../third_party jpeg.cpp main.cpp -o jpeg_csr
+```
+
+The two headers of stb are the only external dependency, kept in
+[`third_party/`](third_party) rather than copied: placing them next to the
+three files also works, since they are included with quotes. Both builds produce
+byte-for-byte identical `.csr` and PNG files.
 
 ## Data representation
 
