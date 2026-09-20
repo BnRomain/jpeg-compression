@@ -6,7 +6,8 @@
 3. Read back the .csr file written by the C++ program and compare the
    quantized matrices of both versions, coefficient by coefficient.
 
-Usage, from the cpp/ folder after `make`:
+Usage, from the cpp/ folder after `make` (or after building the three files of
+submission/, which the script also finds):
     python scripts/compare_with_python.py images/astronaut.png
 Dependencies: those of python/requirements.txt (numpy, scipy, opencv).
 """
@@ -26,8 +27,19 @@ CPP_DIR = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(CPP_DIR.parent / "python"))
 from jpeg_compression import compression, decompression  # noqa: E402
 
-EXECUTABLE = CPP_DIR / ("jpeg_csr.exe" if os.name == "nt" else "jpeg_csr")
 REPEAT = 3
+
+
+def find_executable():
+    """The program built by the Makefile, or the one built in submission/."""
+    name = "jpeg_csr.exe" if os.name == "nt" else "jpeg_csr"
+    for directory in (CPP_DIR, CPP_DIR / "submission"):
+        if (directory / name).exists():
+            return directory / name
+    sys.exit(f"{name} not found: run make, or build the three files of submission/")
+
+
+EXECUTABLE = find_executable()
 
 
 def load_rgb(path):
@@ -38,7 +50,10 @@ def load_rgb(path):
 
 
 def read_csr_file(path):
-    """Read the binary format described in include/compressed_image.hpp."""
+    """Read the binary format described in include/compressed_image.hpp.
+
+    Same description in section 7 of submission/jpeg.hpp.
+    """
     with open(path, "rb") as f:
         assert f.read(4) == b"JCSR", "invalid signature"
         width, height = (int(v) for v in np.frombuffer(f.read(8), dtype="<u4"))

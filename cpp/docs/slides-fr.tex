@@ -134,7 +134,7 @@
 \begin{frame}{Organisation du code}
   \centering
   \begin{tikzpicture}[node distance=0.5cm and 0.7cm]
-    \node[box, minimum width=2.6cm] (io) {\code{image\_io}\\ \code{load\_image}, \code{save\_png}\\ {\tiny seul fichier qui voit stb}};
+    \node[box, minimum width=2.6cm] (io) {\code{image\_io}\\ \code{load\_image}, \code{save\_png}\\ {\tiny seule section qui voit stb}};
     \node[box, minimum width=2.6cm, below=of io] (image) {\code{Image}\\ {\tiny RGB, \code{std::vector<double>}}};
     \node[box, minimum width=2.6cm, below=of image] (table) {\code{QuantizationTable}\\ {\tiny diviseurs $\geq 1$, facteur $\alpha$}};
 
@@ -166,9 +166,9 @@
 
   \vspace{0.5em}
   \small
-  Compilation séparée : \code{include/} (en-têtes commentés) et \code{src/} \quad|\quad
-  espace de noms \code{jpeg} \quad|\quad \code{Makefile} : \code{jpeg\_csr} et \code{run\_tests}
-  à partir des mêmes objets
+  Trois fichiers : \code{jpeg.hpp} (déclarations commentées), \code{jpeg.cpp} (définitions,
+  mêmes 12 sections), \code{main.cpp} \quad|\quad espace de noms \code{jpeg} \quad|\quad
+  compilation séparée, \code{-std=c++20 -Wall -Wextra -pedantic}
 \end{frame}
 
 \begin{frame}[fragile]{Représenter l'image : un seul \code{std::vector}}
@@ -578,7 +578,7 @@ return compress_with_mask(options, mask);
 
 \begin{frame}[fragile]{Annexe : utilisation}
 \begin{lstlisting}[language=bash]
-make && make test
+g++ -std=c++20 -O2 -Wall -Wextra -pedantic jpeg.cpp main.cpp -o jpeg_csr
 ./jpeg_csr compress images/astronaut.png --out results/standard
 ./jpeg_csr decompress results/standard/astronaut.csr decoded.png
 \end{lstlisting}
@@ -596,6 +596,7 @@ Time           : compression 28.23 ms, decompression 21.55 ms
 \end{lstlisting}
   \small Options : \code{--table standard|uniform|low|high}, \code{--alpha}, \code{--threshold},
   \code{--mask square|triangle}, \code{--cutoff}, \code{--noise}, \code{--out}.
+  Dans le dépôt, \code{make \&\& make test} construit aussi les 17 tests.
 \end{frame}
 
 \end{document}
