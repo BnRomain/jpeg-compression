@@ -20,7 +20,7 @@ Bonjour. Nous sommes Romain Ben et Karim Zrig, et nous allons vous présenter no
 
 ### Slide 2 : Du projet Python au C++ (40 s, cumul 0:55)
 
-En MAM3, nous avions codé cet algorithme en Python, avec numpy, scipy et une application Streamlit. Cette semaine, nous l'avons entièrement réécrit en C++20, sans aucune bibliothèque de calcul. Le but n'était pas de changer l'algorithme, mais d'apprendre le C++ sur un problème que nous connaissions déjà. La présentation porte donc surtout sur le code : je présente l'organisation du programme et la façon dont on a représenté les données, puis Karim parlera de la matrice creuse, de la gestion des ressources, du polymorphisme et des résultats.
+En MAM3, nous avions codé cet algorithme en Python, avec numpy, scipy et une application Streamlit. Pour ce projet, nous l'avons entièrement réécrit en C++20. Le but n'était pas de changer l'algorithme, mais d'apprendre le C++ sur un problème que nous connaissions déjà. La présentation porte donc surtout sur le code : je présente l'organisation du programme et la façon dont on a représenté les données, puis Karim parlera de la matrice creuse, de la gestion des ressources, du polymorphisme et des résultats.
 
 ### Slide 3 : L'algorithme en une slide (40 s, cumul 1:35)
 
@@ -28,7 +28,7 @@ Rapidement, l'algorithme. L'image est découpée en blocs de 8 pixels sur 8, sur
 
 ### Slide 4 : Organisation du code (45 s, cumul 2:20)
 
-Côté code, on a suivi la compilation séparée du cours : un en-tête commenté, `jpeg.hpp`, qui déclare tous les types, `jpeg.cpp` qui en donne les définitions dans le même ordre, et `main.cpp` pour le programme. Les douze sections portent les mêmes numéros dans l'en-tête et dans les définitions. Le schéma suit le trajet des données. Une image est lue, puis compressée par la fonction `compress`, qui utilise la DCT, la table de quantification et un masque. Le résultat est un objet `CompressedImage`, qu'on peut écrire dans un fichier `.csr`, relire et décompresser. La bibliothèque stb, qui lit les PNG et les JPEG, n'apparaît que dans un seul fichier.
+Côté code, on a suivi la compilation séparée du cours : un en-tête commenté, `jpeg.hpp`, qui déclare tous les types, `jpeg.cpp` qui en donne les définitions dans le même ordre, et `main.cpp` pour le programme. Le schéma suit le trajet des données. Une image est lue, puis compressée par la fonction `compress`, qui utilise la DCT, la table de quantification et un masque. Le résultat est un objet `CompressedImage`, qu'on peut écrire dans un fichier `.csr`, relire et décompresser. La bibliothèque stb, qui lit les PNG et les JPEG, n'apparaît que dans un seul fichier.
 
 ### Slide 5 : Représenter l'image (50 s, cumul 3:10)
 
